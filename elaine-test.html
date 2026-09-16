@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Elaine Bayhon — Product Designer</title>
+
+<style>
+/* ------------------------------------------------------------------ *
+ * Fonts
+ * ------------------------------------------------------------------ */
+@font-face {
+  font-family: "Switzer";
+  src: url("fonts/Switzer-Variable.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Switzer";
+  src: url("fonts/Switzer-VariableItalic.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Newsreader";
+  src: url("fonts/Newsreader-Variable.woff2") format("woff2");
+  font-weight: 200 800;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Newsreader";
+  src: url("fonts/Newsreader-Italic-Variable.woff2") format("woff2");
+  font-weight: 200 800;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* ------------------------------------------------------------------ *
+ * Tokens
+ * ------------------------------------------------------------------ */
+:root {
+  /* Layout guide: 3 columns, 24px margin, 0 gutter (from the Figma frame) */
+  --margin: 24px;
+  --columns: 3;
+  --column: calc((100% - (var(--margin) * 2)) / var(--columns));
+  --column-2: calc(var(--margin) + var(--column));            /* 488px @ 1440 */
+  --column-3: calc(var(--margin) + (var(--column) * 2));      /* 952px @ 1440 */
+
+  /* Vertical anchors */
+  --header-top: 20px;
+  --headline-top: 200px;
+  --portrait-top: 202px;
+  --footer-offset: 60px;   /* Prev/Current + SGT sit 60px off the bottom */
+
+  /* Headline measure — temporary; will be animated/resized later */
+  --headline-width: 478px;
+
+  /* Colour */
+  --ink: #666666;
+  --muted: #aeaeae;
+  --signature: #6b6a66;
+  --surface: #ffffff;
+  --nav-surface: rgba(245, 243, 242, 0.5);
+  --placeholder: #e9e7e5;
+}
+
+/* ------------------------------------------------------------------ *
+ * Base
+ * ------------------------------------------------------------------ */
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--surface);
+  font-family: "Switzer", system-ui, sans-serif;
+  font-optical-sizing: auto;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* ------------------------------------------------------------------ *
+ * Hero
+ * ------------------------------------------------------------------ */
+.hero {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  min-height: 659px;   /* floor = the Figma frame height, so nothing collides */
+  overflow: hidden;
+  background: var(--surface);
+}
+
+/* --- Signature ----------------------------------------------------- */
+.hero__signature {
+  position: absolute;
+  left: var(--margin);
+  top: var(--header-top);
+  margin: 0;
+  font-family: "Newsreader", Georgia, serif;
+  font-style: italic;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 20.74px;
+  letter-spacing: -0.28px;
+  color: var(--signature);
+  white-space: nowrap;
+}
+
+/* --- Nav ----------------------------------------------------------- */
+.hero__nav {
+  position: absolute;
+  left: 50%;
+  top: var(--header-top);
+  transform: translateX(-50%);
+  padding: 12px 16px;
+  background: var(--nav-surface);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  overflow: hidden;
+}
+
+.hero__nav-list {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.hero__nav-item {
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 14px;
+  letter-spacing: -0.12px;
+  color: var(--muted);
+  opacity: 0.6;
+  white-space: nowrap;
+}
+
+.hero__nav-item--active {
+  color: var(--ink);
+  opacity: 1;
+}
+
+/* --- Headline ------------------------------------------------------ */
+.hero__headline {
+  position: absolute;
+  left: var(--margin);
+  top: var(--headline-top);
+  width: var(--headline-width);
+  margin: 0;
+  font-weight: 300;
+  font-size: 30px;
+  line-height: 39px;
+  letter-spacing: -0.3px;
+  color: var(--muted);
+  word-break: break-word;
+}
+
+/* Newsreader's vertical metrics differ from Switzer's, so a shared 39px
+   line-height would union into a 42px line box. Zeroing the inline leading
+   lets the block's strut alone set the line box — 4 lines x 39px, as drawn. */
+.hero__headline em {
+  font-family: "Newsreader", Georgia, serif;
+  font-weight: 500;
+  font-style: normal;
+  line-height: 0;
+  color: var(--ink);
+}
+
+.hero__headline em.is-italic {
+  font-style: italic;
+}
+
+/* --- Portrait ------------------------------------------------------ */
+.hero__portrait {
+  position: absolute;
+  left: var(--column-3);
+  top: var(--portrait-top);
+  width: 150px;
+  height: 150px;
+  margin: 0;
+  overflow: hidden;
+  background: var(--placeholder);
+}
+
+/* Figma crops a 3:4 fill inside the 150 square: the image renders
+   150 x 200 and is pulled up 50px, so the lower 150px is what shows. */
+.hero__portrait img {
+  position: absolute;
+  left: 0;
+  top: -33.3333%;
+  width: 100%;
+  height: 133.3333%;
+  max-width: none;
+  object-fit: cover;
+  display: block;
+  pointer-events: none;
+}
+
+/* --- Previously / Currently ---------------------------------------- */
+.hero__status {
+  position: absolute;
+  left: var(--margin);
+  bottom: var(--footer-offset);
+  width: 437px;
+  display: grid;
+  grid-template-columns: 90px auto;
+  row-gap: 16px;   /* 21px rows + 16px = 37px row pitch */
+  margin: 0;
+}
+
+.hero__status dt,
+.hero__status dd {
+  margin: 0;
+  font-size: 13.3px;
+  line-height: 20.74px;
+  letter-spacing: -0.266px;
+  white-space: nowrap;
+}
+
+.hero__status dt {
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.hero__status dd {
+  font-weight: 400;
+  color: var(--ink);
+}
+
+/* --- Singapore time ------------------------------------------------ */
+.hero__time {
+  position: absolute;
+  left: var(--column-3);
+  bottom: var(--footer-offset);
+  width: 160px;
+  margin: 0;
+  font-weight: 500;
+  font-size: 13.3px;
+  line-height: 20.74px;
+  letter-spacing: -0.266px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+</style>
+</head>
+
+<body>
+  <section class="hero">
+
+    <p class="hero__signature">Elaine Bayhon</p>
+
+    <nav class="hero__nav" aria-label="Primary">
+      <ul class="hero__nav-list">
+        <li class="hero__nav-item hero__nav-item--active">Work</li>
+        <li class="hero__nav-item">About</li>
+        <li class="hero__nav-item">Contact</li>
+        <li class="hero__nav-item">Resume</li>
+      </ul>
+    </nav>
+
+    <h1 class="hero__headline"><em>Product designer</em> split between two obsessions - the details that <em class="is-italic">make a product right</em>, and the <em class="is-italic">bigger picture</em> that makes it worth building.</h1>
+
+    <!-- Drop the portrait in at assets/hero.jpg (the Figma fill could not be
+         downloaded from this environment). Until then the clip shows a placeholder. -->
+    <figure class="hero__portrait">
+      <img src="assets/hero.jpg" alt="Elaine Bayhon" onerror="this.style.display='none'">
+    </figure>
+
+    <dl class="hero__status">
+      <dt>PREVIOUSLY</dt>
+      <dd>Owned complex design problems at Sunollo and Ohmyhome</dd>
+      <dt>CURRENTLY</dt>
+      <dd>Open for new roles</dd>
+    </dl>
+
+    <p class="hero__time">SINGAPORE TIME <time id="sgt" datetime="">11:24 PM</time></p>
+
+  </section>
+
+<script>
+(function () {
+  var node = document.getElementById("sgt");
+  var formatter = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Singapore",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true
+  });
+  var isoFormatter = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Singapore",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false
+  });
+
+  function render() {
+    // Intl can emit U+202F / U+00A0 before AM/PM — normalise to a plain space.
+    var label = formatter.format(new Date()).replace(/[  ]/g, " ").toUpperCase();
+    if (node.textContent !== label) {
+      node.textContent = label;
+      node.setAttribute("datetime", isoFormatter.format(new Date()));
+    }
+  }
+
+  render();
+  setInterval(render, 1000);
+})();
+</script>
+</body>
+</html>
