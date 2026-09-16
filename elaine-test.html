@@ -6,9 +6,9 @@
 <title>Elaine Bayhon — Product Designer</title>
 
 <style>
-/* ------------------------------------------------------------------ *
+/* ================================================================== *
  * Fonts
- * ------------------------------------------------------------------ */
+ * ================================================================== */
 @font-face {
   font-family: "Switzer";
   src: url("fonts/Switzer-Variable.woff2") format("woff2");
@@ -38,38 +38,62 @@
   font-display: swap;
 }
 
-/* ------------------------------------------------------------------ *
+/* ================================================================== *
  * Tokens
- * ------------------------------------------------------------------ */
+ * ================================================================== */
 :root {
-  /* Layout guide: 3 columns, 24px margin, 0 gutter (from the Figma frame) */
+  /* Scroll-driven transition, written by the scroll handler.
+     --p    eased hero -> work progress (position, size, ground)
+     --out  hero-only elements fading away (leads)
+     --in   work-only elements fading in (trails) */
+  --p: 0;
+  --out: 1;
+  --in: 0;
+
+  --vh: 100vh;
   --margin: 24px;
-  --columns: 3;
-  --column: calc((100% - (var(--margin) * 2)) / var(--columns));
-  --column-2: calc(var(--margin) + var(--column));            /* 488px @ 1440 */
-  --column-3: calc(var(--margin) + (var(--column) * 2));      /* 952px @ 1440 */
+
+  /* Hero layout guide: 3 columns, 24px margin, 0 gutter */
+  --h-column: calc((100% - (var(--margin) * 2)) / 3);
+  --h-column-3: calc(var(--margin) + (var(--h-column) * 2));   /* 952px @ 1440 */
+
+  /* Work layout guide: 12 columns, 24px margin, 16px gutter */
+  --gutter: 16px;
+  --column: calc((100% - (var(--margin) * 2) - (var(--gutter) * 11)) / 12);
+  --pitch: calc(var(--column) + var(--gutter));                /* 117.33px @ 1440 */
 
   /* Vertical anchors */
   --header-top: 20px;
-  --headline-top: 200px;
-  --portrait-top: 202px;
-  --footer-offset: 60px;   /* Prev/Current + SGT sit 60px off the bottom */
+  --footer-offset: 60px;   /* everything bottom-pinned sits 60px up */
+  --eyebrow-top: 41px;
 
-  /* Headline measure — temporary; will be animated/resized later */
-  --headline-width: 478px;
+  /* Elaine Bio: 478px/30px in the hero, 330px/20px in Work */
+  --bio-top-hero: 200px;
+  --bio-width: calc(478px - (var(--p) * 148px));
+  --bio-size: calc(30px - (var(--p) * 10px));
+  --bio-track: calc(-0.3px + (var(--p) * 0.1px));
 
   /* Colour */
   --ink: #666666;
+  --ink-strong: #000000;
   --muted: #aeaeae;
   --signature: #6b6a66;
-  --surface: #ffffff;
+  --ground-hero: #ffffff;
+  --ground-work: #fcfcfc;
   --nav-surface: rgba(245, 243, 242, 0.5);
   --placeholder: #e9e7e5;
+  --placeholder-media: #d9d9d9;
+
+  /* Stacking: ground < page content < left rail < nav pill */
+  --z-ground: 0;
+  --z-content: 1;
+  --z-rail: 5;
+  --z-nav: 100;
 }
 
-/* ------------------------------------------------------------------ *
+/* ================================================================== *
  * Base
- * ------------------------------------------------------------------ */
+ * ================================================================== */
 *,
 *::before,
 *::after { box-sizing: border-box; }
@@ -80,7 +104,7 @@ html, body {
 }
 
 body {
-  background: var(--surface);
+  background: var(--ground-work);
   font-family: "Switzer", system-ui, sans-serif;
   font-optical-sizing: auto;
   -webkit-font-smoothing: antialiased;
@@ -88,24 +112,27 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-/* ------------------------------------------------------------------ *
- * Hero
- * ------------------------------------------------------------------ */
-.hero {
-  position: relative;
-  width: 100%;
-  height: 100vh;
-  height: 100dvh;
-  min-height: 659px;   /* floor = the Figma frame height, so nothing collides */
-  overflow: hidden;
-  background: var(--surface);
+/* The two sections sit on near-identical grounds (#fff -> #fcfcfc), so the
+   change rides the same progress value rather than a hard edge at the seam. */
+.ground {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-ground);
+  background: var(--ground-work);
+  background: color-mix(in srgb, var(--ground-hero), var(--ground-work) calc(var(--p) * 100%));
 }
 
-/* --- Signature ----------------------------------------------------- */
-.hero__signature {
-  position: absolute;
+/* ================================================================== *
+ * Persistent chrome — travels from the hero to its Work position and
+ * then stays put for the rest of the page.
+ * ================================================================== */
+
+/* Elaine Logo: top 20px -> 181px off the bottom (clearing the bio below it) */
+.logo {
+  position: fixed;
   left: var(--margin);
-  top: var(--header-top);
+  top: calc(var(--header-top) + (var(--p) * (var(--vh) - 222px)));
+  z-index: var(--z-rail);
   margin: 0;
   font-family: "Newsreader", Georgia, serif;
   font-style: italic;
@@ -117,12 +144,45 @@ body {
   white-space: nowrap;
 }
 
-/* --- Nav ----------------------------------------------------------- */
-.hero__nav {
-  position: absolute;
+/* Elaine Bio: 478px/30px at top 200px -> 330px/20px, 60px off the bottom.
+   Note this is not a scale — 478 x (20/30) is 318.7, not 330 — so measure and
+   type size are interpolated separately and the copy reflows on the way. */
+.bio {
+  position: fixed;
+  left: var(--margin);
+  top: calc(var(--bio-top-hero) + (var(--p) * (var(--vh) - 364px)));
+  z-index: var(--z-rail);
+  width: var(--bio-width);
+  margin: 0;
+  font-weight: 300;
+  font-size: var(--bio-size);
+  line-height: 1.3;
+  letter-spacing: var(--bio-track);
+  color: var(--muted);
+  word-break: break-word;
+}
+
+/* Newsreader's vertical metrics differ from Switzer's, so a shared line-height
+   would union into a taller line box. Zeroing the inline leading lets the
+   block's strut alone set it — 1.3 x font-size at both ends of the transition. */
+.bio em {
+  font-family: "Newsreader", Georgia, serif;
+  font-weight: 500;
+  font-style: normal;
+  line-height: 0;
+  color: var(--ink);
+}
+
+.bio em.is-italic { font-style: italic; }
+
+/* Nav pill: top 20px -> 60px off the bottom. Always above everything, with a
+   translucent ground so project cards read as passing behind it. */
+.nav {
+  position: fixed;
   left: 50%;
-  top: var(--header-top);
+  top: calc(var(--header-top) + (var(--p) * (var(--vh) - 118px)));
   transform: translateX(-50%);
+  z-index: var(--z-nav);
   padding: 12px 16px;
   background: var(--nav-surface);
   -webkit-backdrop-filter: blur(4px);
@@ -130,7 +190,7 @@ body {
   overflow: hidden;
 }
 
-.hero__nav-list {
+.nav__list {
   display: flex;
   align-items: center;
   gap: 24px;
@@ -139,7 +199,7 @@ body {
   list-style: none;
 }
 
-.hero__nav-item {
+.nav__item {
   font-weight: 400;
   font-size: 12px;
   line-height: 14px;
@@ -149,46 +209,34 @@ body {
   white-space: nowrap;
 }
 
-.hero__nav-item--active {
+.nav__item--active {
   color: var(--ink);
   opacity: 1;
 }
 
-/* --- Headline ------------------------------------------------------ */
-.hero__headline {
-  position: absolute;
-  left: var(--margin);
-  top: var(--headline-top);
-  width: var(--headline-width);
-  margin: 0;
-  font-weight: 300;
-  font-size: 30px;
-  line-height: 39px;
-  letter-spacing: -0.3px;
-  color: var(--muted);
-  word-break: break-word;
+/* ================================================================== *
+ * Hero — everything here is hero-only and clears out on scroll
+ * ================================================================== */
+.hero {
+  position: relative;
+  z-index: var(--z-content);
+  width: 100%;
+  height: var(--vh);
+  min-height: 659px;
+  overflow: hidden;
 }
 
-/* Newsreader's vertical metrics differ from Switzer's, so a shared 39px
-   line-height would union into a 42px line box. Zeroing the inline leading
-   lets the block's strut alone set the line box — 4 lines x 39px, as drawn. */
-.hero__headline em {
-  font-family: "Newsreader", Georgia, serif;
-  font-weight: 500;
-  font-style: normal;
-  line-height: 0;
-  color: var(--ink);
+/* Fading elements drift down slightly as they go, so they dissolve in place
+   instead of simply riding the scroll off the top. */
+.hero__transient {
+  opacity: var(--out);
+  transform: translateY(calc((1 - var(--out)) * 8px));
 }
 
-.hero__headline em.is-italic {
-  font-style: italic;
-}
-
-/* --- Portrait ------------------------------------------------------ */
 .hero__portrait {
   position: absolute;
-  left: var(--column-3);
-  top: var(--portrait-top);
+  left: var(--h-column-3);
+  top: 202px;
   width: 150px;
   height: 150px;
   margin: 0;
@@ -196,8 +244,8 @@ body {
   background: var(--placeholder);
 }
 
-/* Figma crops a 3:4 fill inside the 150 square: the image renders
-   150 x 200 and is pulled up 50px, so the lower 150px is what shows. */
+/* Figma crops a 3:4 fill inside the 150 square: the image renders 150 x 200
+   and is pulled up 50px, so the lower 150px is what shows. */
 .hero__portrait img {
   position: absolute;
   left: 0;
@@ -210,7 +258,6 @@ body {
   pointer-events: none;
 }
 
-/* --- Previously / Currently ---------------------------------------- */
 .hero__status {
   position: absolute;
   left: var(--margin);
@@ -231,20 +278,12 @@ body {
   white-space: nowrap;
 }
 
-.hero__status dt {
-  font-weight: 500;
-  color: var(--muted);
-}
+.hero__status dt { font-weight: 500; color: var(--muted); }
+.hero__status dd { font-weight: 400; color: var(--ink); }
 
-.hero__status dd {
-  font-weight: 400;
-  color: var(--ink);
-}
-
-/* --- Singapore time ------------------------------------------------ */
 .hero__time {
   position: absolute;
-  left: var(--column-3);
+  left: var(--h-column-3);
   bottom: var(--footer-offset);
   width: 160px;
   margin: 0;
@@ -255,43 +294,238 @@ body {
   color: var(--muted);
   white-space: nowrap;
 }
+
+/* ================================================================== *
+ * Work
+ * ================================================================== */
+.work {
+  position: relative;
+  z-index: var(--z-content);
+  min-height: var(--vh);
+  padding-top: var(--eyebrow-top);
+  /* 60px nav offset + 38px pill + 63px clearance, as the Figma article uses */
+  padding-bottom: 161px;
+}
+
+/* Part of the left rail, so it holds at the top of the viewport rather than
+   scrolling away with the first card. */
+.work__eyebrow {
+  position: fixed;
+  left: var(--margin);
+  top: var(--eyebrow-top);
+  z-index: var(--z-rail);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 14.41px;
+  margin: 0;
+  opacity: var(--in);
+  transform: translateY(calc((1 - var(--in)) * 8px));
+}
+
+.work__eyebrow::before {
+  content: "";
+  width: 8px;
+  height: 12px;
+  background: var(--ink);
+}
+
+.work__eyebrow span {
+  font-weight: 400;
+  font-size: 11.6px;
+  line-height: 14.4px;
+  letter-spacing: 0.36px;
+  color: var(--ink);
+  text-transform: uppercase;
+}
+
+/* Columns 5-12 of the 12-column guide */
+.work__cards {
+  margin-left: calc(var(--margin) + (var(--pitch) * 4));
+  width: calc((var(--column) * 8) + (var(--gutter) * 7));
+  display: flex;
+  flex-direction: column;
+  gap: 120px;
+}
+
+.card { margin: 0; }
+
+.card__media {
+  aspect-ratio: 2 / 1;
+  max-width: 100%;
+  border-radius: 4px;
+  background: var(--placeholder-media);
+}
+
+/* The card's own 8-column subgrid: name block on 1-4, details on 5-8 —
+   which puts the details on column 9 of the page guide, as drawn. */
+.card__meta {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: var(--gutter);
+  margin-top: 23px;
+}
+
+.card__client { grid-column: 1 / span 4; }
+.card__details { grid-column: 5 / span 4; }
+
+.card__mark {
+  width: 54px;
+  height: 36px;
+  border-radius: 4px;
+  background: var(--placeholder-media);
+}
+
+.card__name {
+  margin: 12px 0 0;
+  font-weight: 400;
+  font-size: 18px;
+  line-height: 1.3;
+  letter-spacing: -0.36px;
+  color: var(--ink);
+}
+
+.card__head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 0;
+}
+
+.card__title {
+  font-weight: 400;
+  font-size: 18px;
+  line-height: 1.3;
+  letter-spacing: -0.36px;
+  color: var(--ink-strong);
+}
+
+.card__year {
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 1.3;
+  letter-spacing: -0.28px;
+  color: var(--muted);
+}
+
+.card__summary {
+  max-width: 415px;
+  margin: 6px 0 0;
+  font-weight: 300;
+  font-size: 15.5px;
+  line-height: 22.95px;
+  letter-spacing: -0.4px;
+  color: var(--ink);
+}
+
+/* The transition is scroll position, not autonomous motion, so it stays —
+   only the drift on the cross-fading elements is dropped. */
+@media (prefers-reduced-motion: reduce) {
+  .hero__transient,
+  .work__eyebrow { transform: none; }
+}
 </style>
 </head>
 
 <body>
+  <div class="ground"></div>
+
   <section class="hero">
-
-    <p class="hero__signature">Elaine Bayhon</p>
-
-    <nav class="hero__nav" aria-label="Primary">
-      <ul class="hero__nav-list">
-        <li class="hero__nav-item hero__nav-item--active">Work</li>
-        <li class="hero__nav-item">About</li>
-        <li class="hero__nav-item">Contact</li>
-        <li class="hero__nav-item">Resume</li>
-      </ul>
-    </nav>
-
-    <h1 class="hero__headline"><em>Product designer</em> split between two obsessions - the details that <em class="is-italic">make a product right</em>, and the <em class="is-italic">bigger picture</em> that makes it worth building.</h1>
-
     <!-- Drop the portrait in at assets/hero.jpg (the Figma fill could not be
          downloaded from this environment). Until then the clip shows a placeholder. -->
-    <figure class="hero__portrait">
+    <figure class="hero__portrait hero__transient">
       <img src="assets/hero.jpg" alt="Elaine Bayhon" onerror="this.style.display='none'">
     </figure>
 
-    <dl class="hero__status">
+    <dl class="hero__status hero__transient">
       <dt>PREVIOUSLY</dt>
       <dd>Owned complex design problems at Sunollo and Ohmyhome</dd>
       <dt>CURRENTLY</dt>
       <dd>Open for new roles</dd>
     </dl>
 
-    <p class="hero__time">SINGAPORE TIME <time id="sgt" datetime="">11:24 PM</time></p>
-
+    <p class="hero__time hero__transient">SINGAPORE TIME <time id="sgt" datetime="">11:24 PM</time></p>
   </section>
 
+  <section class="work" aria-labelledby="work-heading">
+    <h2 class="work__eyebrow" id="work-heading"><span>Work</span></h2>
+
+    <div class="work__cards">
+      <article class="card">
+        <div class="card__media" role="img" aria-label="Sunollo website redesign preview"></div>
+        <div class="card__meta">
+          <div class="card__client">
+            <div class="card__mark" role="img" aria-label="Sunollo"></div>
+            <p class="card__name">Sunollo</p>
+          </div>
+          <div class="card__details">
+            <p class="card__head"><span class="card__title">Website Redesign</span><span class="card__year">2024-2025</span></p>
+            <p class="card__summary">Redesigned Sunollo's website to embody their updated brand identity, while simplifying offerings to drive lead generation.</p>
+          </div>
+        </div>
+      </article>
+
+      <!-- Cards 02-04: layout placeholders. Only the Sunollo card exists in the
+           Figma frame, so the copy here is deliberately unwritten. -->
+      <article class="card">
+        <div class="card__media"></div>
+        <div class="card__meta">
+          <div class="card__client">
+            <div class="card__mark"></div>
+            <p class="card__name">Project 02</p>
+          </div>
+          <div class="card__details">
+            <p class="card__head"><span class="card__title">Project type</span><span class="card__year">Year</span></p>
+            <p class="card__summary">Project summary goes here — two lines of copy at this measure, matching the rhythm of the card above.</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="card__media"></div>
+        <div class="card__meta">
+          <div class="card__client">
+            <div class="card__mark"></div>
+            <p class="card__name">Project 03</p>
+          </div>
+          <div class="card__details">
+            <p class="card__head"><span class="card__title">Project type</span><span class="card__year">Year</span></p>
+            <p class="card__summary">Project summary goes here — two lines of copy at this measure, matching the rhythm of the card above.</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="card__media"></div>
+        <div class="card__meta">
+          <div class="card__client">
+            <div class="card__mark"></div>
+            <p class="card__name">Project 04</p>
+          </div>
+          <div class="card__details">
+            <p class="card__head"><span class="card__title">Project type</span><span class="card__year">Year</span></p>
+            <p class="card__summary">Project summary goes here — two lines of copy at this measure, matching the rhythm of the card above.</p>
+          </div>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <p class="logo">Elaine Bayhon</p>
+
+  <h1 class="bio"><em>Product designer</em> split between two obsessions - the details that <em class="is-italic">make a product right</em>, and the <em class="is-italic">bigger picture</em> that makes it worth building.</h1>
+
+  <nav class="nav" aria-label="Primary">
+    <ul class="nav__list">
+      <li class="nav__item nav__item--active">Work</li>
+      <li class="nav__item">About</li>
+      <li class="nav__item">Contact</li>
+      <li class="nav__item">Resume</li>
+    </ul>
+  </nav>
+
 <script>
+/* ---- Singapore time ---------------------------------------------- */
 (function () {
   var node = document.getElementById("sgt");
   var formatter = new Intl.DateTimeFormat("en-US", {
@@ -318,6 +552,49 @@ body {
 
   render();
   setInterval(render, 1000);
+})();
+
+/* ---- Hero -> Work transition -------------------------------------
+   One normalised scroll value drives every moving part, so the pieces stay
+   in step with each other and with the scrollbar at any frame rate. */
+(function () {
+  var root = document.documentElement;
+  var hero = document.querySelector(".hero");
+  var distance = 1;
+  var queued = false;
+
+  function clamp01(n) { return n < 0 ? 0 : n > 1 ? 1 : n; }
+
+  // Ease the travel so most of the movement lands early, then settles.
+  function easeInOutCubic(t) {
+    return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+  }
+
+  function measure() {
+    distance = Math.max(hero.offsetHeight, 1);
+    apply();
+  }
+
+  function apply() {
+    queued = false;
+    var raw = clamp01(window.scrollY / distance);
+    root.style.setProperty("--p", easeInOutCubic(raw).toFixed(4));
+    // Hero-only elements lead out; the Work eyebrow trails in behind them,
+    // so the bottom-left slot is empty before the bio arrives in it.
+    root.style.setProperty("--out", clamp01(1 - raw / 0.45).toFixed(4));
+    root.style.setProperty("--in", clamp01((raw - 0.5) / 0.4).toFixed(4));
+  }
+
+  function onScroll() {
+    if (!queued) {
+      queued = true;
+      requestAnimationFrame(apply);
+    }
+  }
+
+  measure();
+  window.addEventListener("scroll", onScroll, { passive: true });
+  window.addEventListener("resize", measure);
 })();
 </script>
 </body>
