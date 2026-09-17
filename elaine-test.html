@@ -47,20 +47,22 @@
      --out  hero-only elements fading away (leads)
      --in   work-only elements fading in (trails)
      --q    eased work -> about progress (rail, eyebrow, nav)
-     --r    eased about -> extras progress (eyebrow, nav) */
+     --r    eased about -> extras progress (eyebrow, nav)
+     --t    eased extras -> contact progress (nav returns to the top) */
   --p: 0;
   --out: 1;
   --in: 0;
   --q: 0;
   --r: 0;
+  --t: 0;
 
   /* Which section the rail and nav are currently naming. These sum to 1 and
      hand off as each progress value completes, so a new section is one more
      weight rather than a rethread of everything downstream. */
   --w-work: calc(1 - var(--q));
   --w-about: calc(var(--q) - var(--r));
-  --w-extras: var(--r);
-  --w-contact: 0;
+  --w-extras: calc(var(--r) - var(--t));
+  --w-contact: var(--t);
 
   --vh: 100vh;
   --margin: 24px;
@@ -164,6 +166,8 @@ body {
   letter-spacing: -0.28px;
   color: var(--signature);
   white-space: nowrap;
+  /* Contact has no logo — the copyright takes this corner. */
+  opacity: calc(1 - var(--t));
 }
 
 /* Elaine Bio: 478px/30px at top 200px -> 330px/20px, 60px off the bottom.
@@ -200,12 +204,13 @@ body {
 
 .bio em.is-italic { font-style: italic; }
 
-/* Nav pill: top 20px -> 60px off the bottom. Always above everything, with a
-   translucent ground so project cards read as passing behind it. */
+/* Nav pill: top 20px -> 60px off the bottom -> back to top 20px in Contact.
+   The return is the same expression run backwards. Always above everything,
+   with a translucent ground so project cards read as passing behind it. */
 .nav {
   position: fixed;
   left: 50%;
-  top: calc(var(--header-top) + (var(--p) * (var(--vh) - 118px)));
+  top: calc(var(--header-top) + ((var(--p) - var(--t)) * (var(--vh) - 118px)));
   transform: translateX(-50%);
   z-index: var(--z-nav);
   padding: 12px 16px;
@@ -322,11 +327,12 @@ a.nav__item { text-decoration: none; }
 .hero__status dt { font-weight: 500; color: var(--muted); }
 .hero__status dd { font-weight: 400; color: var(--ink); }
 
-.hero__time {
-  position: absolute;
-  left: var(--h-column-3);
-  bottom: var(--footer-offset);
-  width: 160px;
+/* SINGAPORE ・ 12:33 PM (UTC+8) — one component, used in the hero and in
+   Contact, kept live off Asia/Singapore. */
+.clock {
+  display: flex;
+  align-items: center;
+  gap: 2px;
   margin: 0;
   font-weight: 500;
   font-size: 13.3px;
@@ -334,6 +340,12 @@ a.nav__item { text-decoration: none; }
   letter-spacing: -0.266px;
   color: var(--muted);
   white-space: nowrap;
+}
+
+.hero__time {
+  position: absolute;
+  left: var(--h-column-3);
+  bottom: var(--footer-offset);
 }
 
 /* ================================================================== *
@@ -390,6 +402,7 @@ a.nav__item { text-decoration: none; }
 .eyebrow__label--work { --w: var(--w-work); }
 .eyebrow__label--about { --w: var(--w-about); }
 .eyebrow__label--extras { --w: var(--w-extras); }
+.eyebrow__label--contact { --w: var(--w-contact); }
 
 /* Columns 5-12 of the 12-column guide */
 .work__cards {
@@ -611,6 +624,142 @@ a.nav__item { text-decoration: none; }
   to { transform: translateX(calc(var(--extras-shift, 0px) * -1)); }
 }
 
+/* ================================================================== *
+ * Contact — 3-column guide; portrait on column 1, details on column 3
+ * ================================================================== */
+.contact {
+  position: relative;
+  z-index: var(--z-content);
+  min-height: var(--vh);
+}
+
+/* image 65 returns, on the opposite side of the page from the hero. */
+.contact__portrait {
+  position: absolute;
+  left: var(--margin);
+  top: 50%;
+  transform: translateY(-50%);
+  width: 150px;
+  height: 150px;
+  margin: 0;
+  overflow: hidden;
+  background: var(--placeholder);
+  opacity: var(--t);
+}
+
+.contact__portrait img {
+  position: absolute;
+  left: 0;
+  top: -33.3333%;
+  width: 100%;
+  height: 133.3333%;
+  max-width: none;
+  object-fit: cover;
+  display: block;
+  pointer-events: none;
+}
+
+.contact__details {
+  position: absolute;
+  left: var(--h-column-3);
+  top: 50%;
+  transform: translateY(-50%);
+  width: 429px;
+  max-width: calc(100% - var(--h-column-3) - var(--margin));
+}
+
+.contact__labels {
+  display: flex;
+  justify-content: space-between;
+  margin: 0 0 37px;
+  font-weight: 500;
+  font-size: 13.3px;
+  line-height: 1.3;
+  letter-spacing: -0.266px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.contact__email {
+  display: block;
+  margin: 0;
+  font-family: "Newsreader", Georgia, serif;
+  font-style: italic;
+  font-weight: 400;
+  font-size: 40px;
+  line-height: 1.3;
+  letter-spacing: -0.8px;
+  color: var(--ink);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.contact__links {
+  display: flex;
+  align-items: center;
+  gap: 40px;
+  margin: 6px 0 0;
+}
+
+.contact__link {
+  display: flex;
+  align-items: center;
+  color: var(--signature);
+  text-decoration: none;
+}
+
+/* Fixed 90px label so the arrows line up across the three links. */
+.contact__link span {
+  width: 90px;
+  font-family: "Newsreader", Georgia, serif;
+  font-style: italic;
+  font-weight: 400;
+  font-size: 28px;
+  line-height: 1;
+  letter-spacing: -0.56px;
+}
+
+.contact__link svg {
+  width: 24px;
+  height: 24px;
+  flex: 0 0 auto;
+}
+
+/* Both stick to the viewport rather than the section, so they hold their
+   40px whatever the window height. */
+.contact__copyright,
+.contact__clock {
+  position: fixed;
+  bottom: 40px;
+  z-index: var(--z-rail);
+  opacity: var(--t);
+}
+
+.contact__copyright {
+  left: var(--margin);
+  margin: 0;
+  font-weight: 500;
+  font-size: 13.3px;
+  line-height: 20.74px;
+  letter-spacing: -0.266px;
+  color: var(--muted);
+  white-space: pre;
+}
+
+.contact__clock { left: var(--h-column-3); }
+
+a[href],
+a[role="link"],
+.nav__item[href] {
+  cursor: pointer;
+}
+
+a[role="link"]:focus-visible,
+a[href]:focus-visible {
+  outline: 1px solid var(--ink);
+  outline-offset: 3px;
+}
+
 html { scroll-behavior: smooth; }
 
 /* The transition is scroll position, not autonomous motion, so it stays —
@@ -644,7 +793,7 @@ html { scroll-behavior: smooth; }
       <dd>Open for new roles</dd>
     </dl>
 
-    <p class="hero__time hero__transient">SINGAPORE TIME <time id="sgt" datetime="">11:24 PM</time></p>
+    <p class="clock hero__time hero__transient"><span>SINGAPORE</span><span>・</span><time class="clock__time" datetime="">12:33 PM (UTC+8)</time></p>
   </section>
 
   <section class="work" id="work" aria-label="Selected work">
@@ -738,11 +887,35 @@ html { scroll-behavior: smooth; }
     </div>
   </section>
 
+  <section class="contact" id="contact" aria-label="Contact">
+    <!-- Drop the portrait in at assets/hero.jpg (the Figma fill could not be
+         downloaded from this environment). Until then the clip shows a placeholder. -->
+    <figure class="contact__portrait">
+      <img src="assets/hero.jpg" alt="Elaine Bayhon" onerror="this.style.display='none'">
+    </figure>
+
+    <div class="contact__details">
+      <p class="contact__labels"><span>HAVE A PROJECT IN MIND?</span><span>Let’s work together :)</span></p>
+      <a class="contact__email" href="mailto:hello.elainegrace@gmail.com">hello.elainegrace@gmail.com</a>
+      <!-- Destinations to follow; each needs only an href and a target. -->
+      <p class="contact__links">
+        <a class="contact__link" role="link" tabindex="0"><span>resume</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.5 18.5 18 6"/><path d="M8.5 6H18v9.5"/></svg></a>
+        <a class="contact__link" role="link" tabindex="0"><span>linkedin</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.5 18.5 18 6"/><path d="M8.5 6H18v9.5"/></svg></a>
+        <a class="contact__link" role="link" tabindex="0"><span>behance</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.5 18.5 18 6"/><path d="M8.5 6H18v9.5"/></svg></a>
+      </p>
+    </div>
+  </section>
+
+  <p class="contact__copyright">© 2026  ELAINE BAYHON<br>Elaine said, "build it like this." AI said, "okay."</p>
+
+  <p class="clock contact__clock"><span>SINGAPORE</span><span>・</span><time class="clock__time" datetime="">12:33 PM (UTC+8)</time></p>
+
   <p class="eyebrow" aria-hidden="true">
     <span class="eyebrow__labels">
       <span class="eyebrow__label eyebrow__label--work">Work</span>
       <span class="eyebrow__label eyebrow__label--about">About me</span>
       <span class="eyebrow__label eyebrow__label--extras">Extras</span>
+      <span class="eyebrow__label eyebrow__label--contact">Contact</span>
     </span>
   </p>
 
@@ -755,34 +928,48 @@ html { scroll-behavior: smooth; }
       <li><a class="nav__item nav__item--work" href="#work">Work</a></li>
       <li><a class="nav__item nav__item--about" href="#about">About</a></li>
       <li><a class="nav__item nav__item--extras" href="#extras">Extras</a></li>
-      <li><span class="nav__item nav__item--contact">Contact</span></li>
+      <li><a class="nav__item nav__item--contact" href="#contact">Contact</a></li>
     </ul>
   </nav>
 
 <script>
 /* ---- Singapore time ---------------------------------------------- */
 (function () {
-  var node = document.getElementById("sgt");
+  var nodes = document.querySelectorAll(".clock__time");
+  if (!nodes.length) return;
+
+  var zone = "Asia/Singapore";
   var formatter = new Intl.DateTimeFormat("en-US", {
-    timeZone: "Asia/Singapore",
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true
+    timeZone: zone, hour: "numeric", minute: "2-digit", hour12: true
   });
   var isoFormatter = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Asia/Singapore",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false
+    timeZone: zone, hour: "2-digit", minute: "2-digit", hour12: false
+  });
+  var zoneFormatter = new Intl.DateTimeFormat("en-US", {
+    timeZone: zone, timeZoneName: "shortOffset"
   });
 
+  // Read the offset off the zone rather than hard-coding +8, so the label
+  // stays true if that ever changes.
+  function offset(now) {
+    var part = zoneFormatter.formatToParts(now).find(function (bit) {
+      return bit.type === "timeZoneName";
+    });
+    return part ? part.value.replace("GMT", "UTC") : "UTC+8";
+  }
+
   function render() {
+    var now = new Date();
     // Intl can emit U+202F / U+00A0 before AM/PM — normalise to a plain space.
-    var label = formatter.format(new Date()).replace(/[  ]/g, " ").toUpperCase();
-    if (node.textContent !== label) {
-      node.textContent = label;
-      node.setAttribute("datetime", isoFormatter.format(new Date()));
-    }
+    var clock = formatter.format(now).replace(/[  ]/g, " ");
+    var label = clock + " (" + offset(now) + ")";
+    var stamp = isoFormatter.format(now);
+    Array.prototype.forEach.call(nodes, function (node) {
+      if (node.textContent !== label) {
+        node.textContent = label;
+        node.setAttribute("datetime", stamp);
+      }
+    });
   }
 
   render();
@@ -854,9 +1041,11 @@ html { scroll-behavior: smooth; }
   var hero = document.querySelector(".hero");
   var about = document.querySelector(".about");
   var extras = document.querySelector(".extras");
+  var contact = document.querySelector(".contact");
   var heroHeight = 1;
   var aboutTop = 0;
   var extrasTop = 0;
+  var contactTop = 0;
   var queued = false;
 
   // Fraction of a viewport each changeover ramps over, ending as the incoming
@@ -876,6 +1065,7 @@ html { scroll-behavior: smooth; }
     heroHeight = Math.max(hero.offsetHeight, 1);
     aboutTop = about.offsetTop;
     extrasTop = extras.offsetTop;
+    contactTop = contact.offsetTop;
     apply();
   }
 
@@ -893,8 +1083,10 @@ html { scroll-behavior: smooth; }
     var ramp = Math.max(window.innerHeight * RAMP, 1);
     var toAbout = clamp01((y - (aboutTop - ramp)) / ramp);
     var toExtras = clamp01((y - (extrasTop - ramp)) / ramp);
+    var toContact = clamp01((y - (contactTop - ramp)) / ramp);
     root.style.setProperty("--q", easeInOutCubic(toAbout).toFixed(4));
     root.style.setProperty("--r", easeInOutCubic(toExtras).toFixed(4));
+    root.style.setProperty("--t", easeInOutCubic(toContact).toFixed(4));
   }
 
   function onScroll() {
