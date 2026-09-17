@@ -46,11 +46,21 @@
      --p    eased hero -> work progress (position, size, ground)
      --out  hero-only elements fading away (leads)
      --in   work-only elements fading in (trails)
-     --q    eased work -> about progress (rail, eyebrow, nav) */
+     --q    eased work -> about progress (rail, eyebrow, nav)
+     --r    eased about -> extras progress (eyebrow, nav) */
   --p: 0;
   --out: 1;
   --in: 0;
   --q: 0;
+  --r: 0;
+
+  /* Which section the rail and nav are currently naming. These sum to 1 and
+     hand off as each progress value completes, so a new section is one more
+     weight rather than a rethread of everything downstream. */
+  --w-work: calc(1 - var(--q));
+  --w-about: calc(var(--q) - var(--r));
+  --w-extras: var(--r);
+  --w-contact: 0;
 
   --vh: 100vh;
   --margin: 24px;
@@ -86,6 +96,10 @@
   --nav-surface: rgba(245, 243, 242, 0.5);
   --placeholder: #e9e7e5;
   --placeholder-media: #d9d9d9;
+
+  /* Carousel travel, in pixels per second. Constant at any tile count or
+     viewport width — the loop gets longer, not faster. */
+  --extras-speed: 45;
 
   /* Stacking: ground < page content < left rail < nav pill */
   --z-ground: 0;
@@ -223,17 +237,18 @@ a.nav__item { text-decoration: none; }
   white-space: nowrap;
 }
 
-/* The active item follows the section, so the two states cross over on the
-   same progress value that moves the rail. */
-.nav__item--work {
-  color: color-mix(in srgb, var(--ink), var(--muted) calc(var(--q) * 100%));
-  opacity: calc(1 - (var(--q) * 0.4));
+/* The active item follows the section: each one reads its own weight, so
+   the states cross over wherever the sections do. */
+.nav__item {
+  --w: 0;
+  color: color-mix(in srgb, var(--muted), var(--ink) calc(var(--w) * 100%));
+  opacity: calc(0.6 + (var(--w) * 0.4));
 }
 
-.nav__item--about {
-  color: color-mix(in srgb, var(--muted), var(--ink) calc(var(--q) * 100%));
-  opacity: calc(0.6 + (var(--q) * 0.4));
-}
+.nav__item--work { --w: var(--w-work); }
+.nav__item--about { --w: var(--w-about); }
+.nav__item--extras { --w: var(--w-extras); }
+.nav__item--contact { --w: var(--w-contact); }
 
 .nav__item:focus-visible {
   outline: 1px solid var(--ink);
@@ -360,7 +375,9 @@ a.nav__item { text-decoration: none; }
 .eyebrow__labels { display: grid; }
 
 .eyebrow__label {
+  --w: 0;
   grid-area: 1 / 1;
+  opacity: var(--w);
   font-weight: 400;
   font-size: 11.6px;
   line-height: 14.4px;
@@ -370,8 +387,9 @@ a.nav__item { text-decoration: none; }
   white-space: nowrap;
 }
 
-.eyebrow__label--work { opacity: calc(1 - var(--q)); }
-.eyebrow__label--about { opacity: var(--q); }
+.eyebrow__label--work { --w: var(--w-work); }
+.eyebrow__label--about { --w: var(--w-about); }
+.eyebrow__label--extras { --w: var(--w-extras); }
 
 /* Columns 5-12 of the 12-column guide */
 .work__cards {
@@ -528,6 +546,71 @@ a.nav__item { text-decoration: none; }
   white-space: nowrap;
 }
 
+/* ================================================================== *
+ * Extras — 12-column guide; the carousel runs full bleed
+ * ================================================================== */
+.extras {
+  position: relative;
+  z-index: var(--z-content);
+  min-height: var(--vh);
+  padding-top: var(--eyebrow-top);
+  padding-bottom: 161px;
+}
+
+/* Columns 9-12, on the same line as the eyebrow */
+.extras__intro {
+  margin-left: calc(var(--margin) + (var(--pitch) * 8));
+  width: calc((var(--column) * 4) + (var(--gutter) * 3));
+  max-width: calc(100% - var(--margin) * 2);
+}
+
+.extras__intro p {
+  margin: 0;
+  font-weight: 300;
+  font-size: 15.5px;
+  line-height: 22.95px;
+  letter-spacing: -0.4px;
+  color: var(--ink);
+}
+
+/* Full bleed: the track is clipped by the viewport, not by the margins, so
+   tiles enter and leave off-screen rather than at the 24px guides. */
+.extras__carousel {
+  margin-top: 80.5px;
+  overflow: hidden;
+}
+
+/* The track keeps the carousel's own width and lets its tiles overflow, so
+   the grid percentages resolve against a definite box. Sizing it to its
+   content instead would make tile width depend on the track and the track on
+   the tile width, and the browser resolves that circle arbitrarily. */
+.extras__track {
+  display: flex;
+  flex-wrap: nowrap;
+  will-change: transform;
+  animation: extras-marquee 30s linear infinite;
+}
+
+.extras__carousel:hover .extras__track,
+.extras__carousel:focus-within .extras__track {
+  animation-play-state: paused;
+}
+
+/* Three columns wide, and the gutter rides on every tile including the last
+   so one whole set is exactly the distance the track travels per cycle. */
+.extras__tile {
+  flex: 0 0 auto;
+  width: calc((var(--column) * 3) + (var(--gutter) * 2));
+  aspect-ratio: 336 / 388.33;
+  margin-right: var(--gutter);
+  background: var(--placeholder-media);
+}
+
+@keyframes extras-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(calc(var(--extras-shift, 0px) * -1)); }
+}
+
 html { scroll-behavior: smooth; }
 
 /* The transition is scroll position, not autonomous motion, so it stays —
@@ -536,6 +619,8 @@ html { scroll-behavior: smooth; }
   .hero__transient,
   .bio,
   .eyebrow { transform: none; }
+
+  .extras__track { animation: none; }
 
   html { scroll-behavior: auto; }
 }
@@ -636,10 +721,28 @@ html { scroll-behavior: smooth; }
     </div>
   </section>
 
+  <section class="extras" id="extras" aria-label="Extras">
+    <div class="extras__intro">
+      <p>A mixed bag of professional and personal projects.<br>Some shipped, some just for fun.</p>
+    </div>
+
+    <!-- One set of tiles. The set is duplicated at runtime to whatever the
+         viewport needs, so adding tiles here is all that is required. -->
+    <div class="extras__carousel">
+      <div class="extras__track">
+        <div class="extras__tile"></div>
+        <div class="extras__tile"></div>
+        <div class="extras__tile"></div>
+        <div class="extras__tile"></div>
+      </div>
+    </div>
+  </section>
+
   <p class="eyebrow" aria-hidden="true">
     <span class="eyebrow__labels">
       <span class="eyebrow__label eyebrow__label--work">Work</span>
       <span class="eyebrow__label eyebrow__label--about">About me</span>
+      <span class="eyebrow__label eyebrow__label--extras">Extras</span>
     </span>
   </p>
 
@@ -651,8 +754,8 @@ html { scroll-behavior: smooth; }
     <ul class="nav__list">
       <li><a class="nav__item nav__item--work" href="#work">Work</a></li>
       <li><a class="nav__item nav__item--about" href="#about">About</a></li>
-      <li><span class="nav__item">Contact</span></li>
-      <li><span class="nav__item">Resume</span></li>
+      <li><a class="nav__item nav__item--extras" href="#extras">Extras</a></li>
+      <li><span class="nav__item nav__item--contact">Contact</span></li>
     </ul>
   </nav>
 
@@ -686,6 +789,63 @@ html { scroll-behavior: smooth; }
   setInterval(render, 1000);
 })();
 
+/* ---- Extras carousel ---------------------------------------------
+   The set authored in the markup is duplicated until it covers the viewport
+   plus one whole set, and the cycle distance is exactly one set — so the
+   wrap is seamless at any tile count or window width, and travel speed
+   stays constant instead of scaling with either. */
+(function () {
+  var carousel = document.querySelector(".extras__carousel");
+  if (!carousel) return;
+
+  var track = carousel.querySelector(".extras__track");
+  var originals = Array.prototype.slice.call(track.children);
+  if (!originals.length) return;
+
+  var speed = parseFloat(
+    getComputedStyle(document.documentElement).getPropertyValue("--extras-speed")
+  ) || 45;
+  var queued = false;
+
+  function build() {
+    queued = false;
+
+    Array.prototype.slice.call(track.children).forEach(function (tile) {
+      if (tile.hasAttribute("data-clone")) track.removeChild(tile);
+    });
+
+    var setWidth = originals.reduce(function (total, tile) {
+      var gap = parseFloat(getComputedStyle(tile).marginRight) || 0;
+      return total + tile.getBoundingClientRect().width + gap;
+    }, 0);
+    if (!setWidth) return;
+
+    var copies = Math.min(Math.ceil((carousel.clientWidth + setWidth) / setWidth), 12);
+    for (var i = 1; i < copies; i++) {
+      originals.forEach(function (tile) {
+        var clone = tile.cloneNode(true);
+        clone.setAttribute("data-clone", "");
+        clone.setAttribute("aria-hidden", "true");
+        track.appendChild(clone);
+      });
+    }
+
+    track.style.setProperty("--extras-shift", setWidth.toFixed(2) + "px");
+    track.style.animationDuration = (setWidth / speed).toFixed(2) + "s";
+  }
+
+  function onResize() {
+    if (!queued) {
+      queued = true;
+      requestAnimationFrame(build);
+    }
+  }
+
+  build();
+  window.addEventListener("resize", onResize);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(build);
+})();
+
 /* ---- Hero -> Work transition -------------------------------------
    One normalised scroll value drives every moving part, so the pieces stay
    in step with each other and with the scrollbar at any frame rate. */
@@ -693,13 +853,15 @@ html { scroll-behavior: smooth; }
   var root = document.documentElement;
   var hero = document.querySelector(".hero");
   var about = document.querySelector(".about");
+  var extras = document.querySelector(".extras");
   var heroHeight = 1;
   var aboutTop = 0;
+  var extrasTop = 0;
   var queued = false;
 
-  // Fraction of a viewport the About changeover ramps over, ending as that
+  // Fraction of a viewport each changeover ramps over, ending as the incoming
   // section's top reaches the top of the viewport.
-  var ABOUT_RAMP = 0.5;
+  var RAMP = 0.5;
 
   function clamp01(n) { return n < 0 ? 0 : n > 1 ? 1 : n; }
 
@@ -713,6 +875,7 @@ html { scroll-behavior: smooth; }
   function measure() {
     heroHeight = Math.max(hero.offsetHeight, 1);
     aboutTop = about.offsetTop;
+    extrasTop = extras.offsetTop;
     apply();
   }
 
@@ -727,9 +890,11 @@ html { scroll-behavior: smooth; }
     root.style.setProperty("--out", clamp01(1 - toWork / 0.45).toFixed(4));
     root.style.setProperty("--in", clamp01((toWork - 0.5) / 0.4).toFixed(4));
 
-    var ramp = Math.max(window.innerHeight * ABOUT_RAMP, 1);
+    var ramp = Math.max(window.innerHeight * RAMP, 1);
     var toAbout = clamp01((y - (aboutTop - ramp)) / ramp);
+    var toExtras = clamp01((y - (extrasTop - ramp)) / ramp);
     root.style.setProperty("--q", easeInOutCubic(toAbout).toFixed(4));
+    root.style.setProperty("--r", easeInOutCubic(toExtras).toFixed(4));
   }
 
   function onScroll() {
