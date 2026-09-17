@@ -79,22 +79,29 @@
 
   /* Vertical anchors */
   --header-top: 20px;
+  --logo-lead: 18.2px;     /* 14px x 130%, so the logo can anchor by its foot */
   --footer-offset: 60px;   /* everything bottom-pinned sits 60px up */
   --eyebrow-top: 41px;
 
-  /* Elaine Bio: 478px/30px in the hero, 330px/20px in Work */
+  /* Elaine Bio: 464px in the hero (one column of the 3-col guide) at 28px
+     Switzer / 30px Newsreader, down to 330px at 20px for both in Work.
+     Leading follows the larger of the two, as the frame does. */
   --bio-top-hero: 200px;
-  --bio-width: calc(478px - (var(--p) * 148px));
-  --bio-size: calc(30px - (var(--p) * 10px));
+  --bio-width: calc(464px - (var(--p) * 134px));
+  --bio-size: calc(28px - (var(--p) * 8px));
+  --bio-size-serif: calc(30px - (var(--p) * 10px));
+  --bio-lead: calc(39px - (var(--p) * 13px));
   --bio-track: calc(-0.3px + (var(--p) * 0.1px));
+  /* Clears the PRODUCT DESIGNER label on the first line; closes up by Work. */
+  --bio-indent: calc(167px * (1 - var(--p)));
 
   /* Colour */
   --ink: #666666;
   --ink-strong: #000000;
   --muted: #aeaeae;
   --signature: #6b6a66;
-  --ground-hero: #ffffff;
-  --ground-work: #fcfcfc;
+  --ground: #fcfcfc;
+  --accent-green: #34c759;
   --nav-surface: rgba(245, 243, 242, 0.5);
   --placeholder: #e9e7e5;
   --placeholder-media: #d9d9d9;
@@ -103,8 +110,7 @@
      viewport width — the loop gets longer, not faster. */
   --extras-speed: 45;
 
-  /* Stacking: ground < page content < left rail < nav pill */
-  --z-ground: 0;
+  /* Stacking: page content < left rail < nav pill */
   --z-content: 1;
   --z-rail: 5;
   --z-nav: 100;
@@ -123,7 +129,7 @@ html, body {
 }
 
 body {
-  background: var(--ground-work);
+  background: var(--ground);
   font-family: "Switzer", system-ui, sans-serif;
   font-optical-sizing: auto;
   -webkit-font-smoothing: antialiased;
@@ -131,38 +137,30 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-/* The two sections sit on near-identical grounds (#fff -> #fcfcfc), so the
-   change rides the same progress value rather than a hard edge at the seam. */
-.ground {
-  position: fixed;
-  inset: 0;
-  z-index: var(--z-ground);
-  background: var(--ground-work);
-  background: color-mix(in srgb, var(--ground-hero), var(--ground-work) calc(var(--p) * 100%));
-}
-
 /* ================================================================== *
  * Persistent chrome — travels from the hero to its Work position and
  * then stays put for the rest of the page.
  * ================================================================== */
 
-/* Elaine Logo: top 20px -> 181px off the bottom (clearing the bio below it)
-   -> 60px off the bottom once the bio leaves and it takes that slot. */
+/* Elaine Logo: top 20px -> 180px off the bottom (clearing the bio below it)
+   -> 60px off the bottom once the bio leaves and it takes that slot. Both
+   Work and About positions are stated as distances from its foot, so a change
+   of line-height cannot drift them. */
 .logo {
   position: fixed;
   left: var(--margin);
   top: calc(
     var(--header-top)
-    + (var(--p) * (var(--vh) - 222px))
-    + (var(--q) * 121px)
+    + (var(--p) * (var(--vh) - 180px - var(--logo-lead) - var(--header-top)))
+    + (var(--q) * 120px)
   );
   z-index: var(--z-rail);
   margin: 0;
   font-family: "Newsreader", Georgia, serif;
   font-style: italic;
-  font-weight: 400;
+  font-weight: 500;
   font-size: 14px;
-  line-height: 20.74px;
+  line-height: 1.3;
   letter-spacing: -0.28px;
   color: var(--signature);
   white-space: nowrap;
@@ -182,7 +180,7 @@ body {
   margin: 0;
   font-weight: 300;
   font-size: var(--bio-size);
-  line-height: 1.3;
+  line-height: var(--bio-lead);
   letter-spacing: var(--bio-track);
   color: var(--muted);
   word-break: break-word;
@@ -191,18 +189,39 @@ body {
   transform: translateY(calc(var(--q) * 12px));
 }
 
+/* PRODUCT DESIGNER sits on the bio's first line, which the text is indented
+   past. Both the label and the indent retire into Work, where the bio stands
+   alone. */
+.bio__title {
+  position: absolute;
+  left: 0;
+  top: 0;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: var(--bio-lead);
+  letter-spacing: -0.28px;
+  text-transform: uppercase;
+  white-space: nowrap;
+  opacity: clamp(0, calc((0.3 - var(--p)) / 0.3), 1);
+}
+
+.bio__text {
+  display: block;
+  text-indent: var(--bio-indent);
+}
+
 /* Newsreader's vertical metrics differ from Switzer's, so a shared line-height
    would union into a taller line box. Zeroing the inline leading lets the
-   block's strut alone set it — 1.3 x font-size at both ends of the transition. */
+   block's strut alone set it — and the strut follows the larger of the two
+   sizes, which is how the frame spaces its mixed lines. */
 .bio em {
   font-family: "Newsreader", Georgia, serif;
   font-weight: 500;
-  font-style: normal;
+  font-style: italic;
+  font-size: var(--bio-size-serif);
   line-height: 0;
   color: var(--ink);
 }
-
-.bio em.is-italic { font-style: italic; }
 
 /* Nav pill: top 20px -> 60px off the bottom -> back to top 20px in Contact.
    The return is the same expression run backwards. Always above everything,
@@ -233,9 +252,8 @@ a.nav__item { text-decoration: none; }
 
 .nav__item {
   display: block;
-  font-weight: 400;
   font-size: 12px;
-  line-height: 14px;
+  line-height: 1.3;
   letter-spacing: -0.12px;
   color: var(--muted);
   opacity: 0.6;
@@ -243,9 +261,11 @@ a.nav__item { text-decoration: none; }
 }
 
 /* The active item follows the section: each one reads its own weight, so
-   the states cross over wherever the sections do. */
+   the states cross over wherever the sections do. Switzer is variable, so
+   Light -> Medium interpolates on the weight axis rather than snapping. */
 .nav__item {
   --w: 0;
+  font-variation-settings: "wght" calc(300 + (var(--w) * 200));
   color: color-mix(in srgb, var(--muted), var(--ink) calc(var(--w) * 100%));
   opacity: calc(0.6 + (var(--w) * 0.4));
 }
@@ -308,24 +328,46 @@ a.nav__item { text-decoration: none; }
   position: absolute;
   left: var(--margin);
   bottom: var(--footer-offset);
-  width: 437px;
-  display: grid;
-  grid-template-columns: 90px auto;
-  row-gap: 16px;   /* 21px rows + 16px = 37px row pitch */
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
   margin: 0;
+}
+
+.hero__status-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .hero__status dt,
 .hero__status dd {
   margin: 0;
-  font-size: 13.3px;
-  line-height: 20.74px;
-  letter-spacing: -0.266px;
+  font-size: 14px;
+  line-height: 1.3;
+  letter-spacing: -0.28px;
   white-space: nowrap;
 }
 
-.hero__status dt { font-weight: 500; color: var(--muted); }
-.hero__status dd { font-weight: 400; color: var(--ink); }
+.hero__status dt {
+  width: 80px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.hero__status dd {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 400;
+  color: var(--ink);
+}
+
+.hero__dot {
+  font-size: 16px;
+  letter-spacing: -0.32px;
+  color: var(--accent-green);
+}
 
 /* SINGAPORE ・ 12:33 PM (UTC+8) — one component, used in the hero and in
    Contact, kept live off Asia/Singapore. */
@@ -335,9 +377,9 @@ a.nav__item { text-decoration: none; }
   gap: 2px;
   margin: 0;
   font-weight: 500;
-  font-size: 13.3px;
-  line-height: 20.74px;
-  letter-spacing: -0.266px;
+  font-size: 14px;
+  line-height: 1.3;
+  letter-spacing: -0.28px;
   color: var(--muted);
   white-space: nowrap;
 }
@@ -777,20 +819,20 @@ html { scroll-behavior: smooth; }
 </head>
 
 <body>
-  <div class="ground"></div>
-
   <section class="hero">
-    <!-- Drop the portrait in at assets/hero.jpg (the Figma fill could not be
-         downloaded from this environment). Until then the clip shows a placeholder. -->
     <figure class="hero__portrait hero__transient">
-      <img src="assets/hero.jpg" alt="Elaine Bayhon" onerror="this.style.display='none'">
+      <img src="assets/elainepic.webp" alt="Elaine Bayhon">
     </figure>
 
     <dl class="hero__status hero__transient">
-      <dt>PREVIOUSLY</dt>
-      <dd>Owned complex design problems at Sunollo and Ohmyhome</dd>
-      <dt>CURRENTLY</dt>
-      <dd>Open for new roles</dd>
+      <div class="hero__status-row">
+        <dt>CURRENTLY</dt>
+        <dd><span class="hero__dot" aria-hidden="true">•</span>Open for new roles</dd>
+      </div>
+      <div class="hero__status-row">
+        <dt>PREVIOUSLY</dt>
+        <dd>Owned complex design problems at Sunollo and Ohmyhome</dd>
+      </div>
     </dl>
 
     <p class="clock hero__time hero__transient"><span>SINGAPORE</span><span>・</span><time class="clock__time" datetime="">12:33 PM (UTC+8)</time></p>
@@ -888,10 +930,8 @@ html { scroll-behavior: smooth; }
   </section>
 
   <section class="contact" id="contact" aria-label="Contact">
-    <!-- Drop the portrait in at assets/hero.jpg (the Figma fill could not be
-         downloaded from this environment). Until then the clip shows a placeholder. -->
     <figure class="contact__portrait">
-      <img src="assets/hero.jpg" alt="Elaine Bayhon" onerror="this.style.display='none'">
+      <img src="assets/elainepic.webp" alt="Elaine Bayhon">
     </figure>
 
     <div class="contact__details">
@@ -921,7 +961,10 @@ html { scroll-behavior: smooth; }
 
   <p class="logo">Elaine Bayhon</p>
 
-  <h1 class="bio"><em>Product designer</em> split between two obsessions - the details that <em class="is-italic">make a product right</em>, and the <em class="is-italic">bigger picture</em> that makes it worth building.</h1>
+  <h1 class="bio">
+    <span class="bio__title">Product designer</span>
+    <span class="bio__text">I <em>design</em> the logic, the flow, and the structure that makes someone open <em>an app</em> or <em>a website</em> and think, <em>“This just works.”</em></span>
+  </h1>
 
   <nav class="nav" aria-label="Primary">
     <ul class="nav__list">
