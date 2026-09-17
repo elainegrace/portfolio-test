@@ -45,16 +45,19 @@
   /* Scroll-driven transition, written by the scroll handler.
      --p    eased hero -> work progress (position, size, ground)
      --out  hero-only elements fading away (leads)
-     --in   work-only elements fading in (trails) */
+     --in   work-only elements fading in (trails)
+     --q    eased work -> about progress (rail, eyebrow, nav) */
   --p: 0;
   --out: 1;
   --in: 0;
+  --q: 0;
 
   --vh: 100vh;
   --margin: 24px;
 
   /* Hero layout guide: 3 columns, 24px margin, 0 gutter */
   --h-column: calc((100% - (var(--margin) * 2)) / 3);
+  --h-column-2: calc(var(--margin) + var(--h-column));         /* 488px @ 1440 */
   --h-column-3: calc(var(--margin) + (var(--h-column) * 2));   /* 952px @ 1440 */
 
   /* Work layout guide: 12 columns, 24px margin, 16px gutter */
@@ -127,11 +130,16 @@ body {
  * then stays put for the rest of the page.
  * ================================================================== */
 
-/* Elaine Logo: top 20px -> 181px off the bottom (clearing the bio below it) */
+/* Elaine Logo: top 20px -> 181px off the bottom (clearing the bio below it)
+   -> 60px off the bottom once the bio leaves and it takes that slot. */
 .logo {
   position: fixed;
   left: var(--margin);
-  top: calc(var(--header-top) + (var(--p) * (var(--vh) - 222px)));
+  top: calc(
+    var(--header-top)
+    + (var(--p) * (var(--vh) - 222px))
+    + (var(--q) * 121px)
+  );
   z-index: var(--z-rail);
   margin: 0;
   font-family: "Newsreader", Georgia, serif;
@@ -160,6 +168,9 @@ body {
   letter-spacing: var(--bio-track);
   color: var(--muted);
   word-break: break-word;
+  /* Leaves the rail in About, handing its slot to the logo. */
+  opacity: calc(1 - var(--q));
+  transform: translateY(calc(var(--q) * 12px));
 }
 
 /* Newsreader's vertical metrics differ from Switzer's, so a shared line-height
@@ -199,7 +210,10 @@ body {
   list-style: none;
 }
 
+a.nav__item { text-decoration: none; }
+
 .nav__item {
+  display: block;
   font-weight: 400;
   font-size: 12px;
   line-height: 14px;
@@ -209,9 +223,21 @@ body {
   white-space: nowrap;
 }
 
-.nav__item--active {
-  color: var(--ink);
-  opacity: 1;
+/* The active item follows the section, so the two states cross over on the
+   same progress value that moves the rail. */
+.nav__item--work {
+  color: color-mix(in srgb, var(--ink), var(--muted) calc(var(--q) * 100%));
+  opacity: calc(1 - (var(--q) * 0.4));
+}
+
+.nav__item--about {
+  color: color-mix(in srgb, var(--muted), var(--ink) calc(var(--q) * 100%));
+  opacity: calc(0.6 + (var(--q) * 0.4));
+}
+
+.nav__item:focus-visible {
+  outline: 1px solid var(--ink);
+  outline-offset: 3px;
 }
 
 /* ================================================================== *
@@ -308,8 +334,8 @@ body {
 }
 
 /* Part of the left rail, so it holds at the top of the viewport rather than
-   scrolling away with the first card. */
-.work__eyebrow {
+   scrolling away with the section it labels. */
+.eyebrow {
   position: fixed;
   left: var(--margin);
   top: var(--eyebrow-top);
@@ -323,21 +349,29 @@ body {
   transform: translateY(calc((1 - var(--in)) * 8px));
 }
 
-.work__eyebrow::before {
+.eyebrow::before {
   content: "";
   width: 8px;
   height: 12px;
   background: var(--ink);
 }
 
-.work__eyebrow span {
+/* Both labels occupy one cell so they cross-fade in place. */
+.eyebrow__labels { display: grid; }
+
+.eyebrow__label {
+  grid-area: 1 / 1;
   font-weight: 400;
   font-size: 11.6px;
   line-height: 14.4px;
   letter-spacing: 0.36px;
   color: var(--ink);
   text-transform: uppercase;
+  white-space: nowrap;
 }
+
+.eyebrow__label--work { opacity: calc(1 - var(--q)); }
+.eyebrow__label--about { opacity: var(--q); }
 
 /* Columns 5-12 of the 12-column guide */
 .work__cards {
@@ -437,11 +471,73 @@ body {
   color: var(--ink);
 }
 
+/* ================================================================== *
+ * About — 3-column guide again, content on the second section mark
+ * ================================================================== */
+.about {
+  position: relative;
+  z-index: var(--z-content);
+  min-height: var(--vh);
+  padding-top: 119px;
+  padding-bottom: 161px;
+}
+
+.about__content {
+  margin-left: var(--h-column-2);
+  width: 564.81px;
+  max-width: calc(100% - var(--h-column-2) - var(--margin));
+}
+
+/* Line breaks in this section are authored, not wrapped — the <br>s match
+   the frame. They assume this measure, so the block keeps a fixed width. */
+.about__headline {
+  margin: 0;
+  font-weight: 500;
+  font-size: 25.4px;
+  line-height: 32.2px;
+  letter-spacing: -0.28px;
+  color: var(--ink-strong);
+}
+
+.about__body {
+  width: 470px;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 29px 0 0;
+}
+
+.about__body p {
+  margin: 0;
+  font-weight: 500;
+  font-size: 13px;
+  line-height: 20.74px;
+  letter-spacing: -0.145px;
+  color: var(--ink);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+html { scroll-behavior: smooth; }
+
 /* The transition is scroll position, not autonomous motion, so it stays —
    only the drift on the cross-fading elements is dropped. */
 @media (prefers-reduced-motion: reduce) {
   .hero__transient,
-  .work__eyebrow { transform: none; }
+  .bio,
+  .eyebrow { transform: none; }
+
+  html { scroll-behavior: auto; }
 }
 </style>
 </head>
@@ -466,8 +562,8 @@ body {
     <p class="hero__time hero__transient">SINGAPORE TIME <time id="sgt" datetime="">11:24 PM</time></p>
   </section>
 
-  <section class="work" aria-labelledby="work-heading">
-    <h2 class="work__eyebrow" id="work-heading"><span>Work</span></h2>
+  <section class="work" id="work" aria-label="Selected work">
+    <h2 class="visually-hidden">Work</h2>
 
     <div class="work__cards">
       <article class="card">
@@ -530,16 +626,33 @@ body {
     </div>
   </section>
 
+  <section class="about" id="about" aria-label="About me">
+    <div class="about__content">
+      <h2 class="about__headline">From brand to product, I create thoughtful,<br>expressive end-to-end digital experiences that<br>connect meaningfully with customers and drive<br>business impact.</h2>
+      <div class="about__body">
+        <p>Over the past 7 years, I’ve worked both in-house and independently on teams<br>big and small designing everything from unique brand identities to complex<br>digital products, websites, animations, and more.</p>
+        <p>I believe the best work delivers intentional contrasts: familiar yet unique,<br>detailed yet simple, playful yet refined. My process is user-centric and data-<br>driven, blending intentional strategy with clever, creative delight.</p>
+      </div>
+    </div>
+  </section>
+
+  <p class="eyebrow" aria-hidden="true">
+    <span class="eyebrow__labels">
+      <span class="eyebrow__label eyebrow__label--work">Work</span>
+      <span class="eyebrow__label eyebrow__label--about">About me</span>
+    </span>
+  </p>
+
   <p class="logo">Elaine Bayhon</p>
 
   <h1 class="bio"><em>Product designer</em> split between two obsessions - the details that <em class="is-italic">make a product right</em>, and the <em class="is-italic">bigger picture</em> that makes it worth building.</h1>
 
   <nav class="nav" aria-label="Primary">
     <ul class="nav__list">
-      <li class="nav__item nav__item--active">Work</li>
-      <li class="nav__item">About</li>
-      <li class="nav__item">Contact</li>
-      <li class="nav__item">Resume</li>
+      <li><a class="nav__item nav__item--work" href="#work">Work</a></li>
+      <li><a class="nav__item nav__item--about" href="#about">About</a></li>
+      <li><span class="nav__item">Contact</span></li>
+      <li><span class="nav__item">Resume</span></li>
     </ul>
   </nav>
 
@@ -579,8 +692,14 @@ body {
 (function () {
   var root = document.documentElement;
   var hero = document.querySelector(".hero");
-  var distance = 1;
+  var about = document.querySelector(".about");
+  var heroHeight = 1;
+  var aboutTop = 0;
   var queued = false;
+
+  // Fraction of a viewport the About changeover ramps over, ending as that
+  // section's top reaches the top of the viewport.
+  var ABOUT_RAMP = 0.5;
 
   function clamp01(n) { return n < 0 ? 0 : n > 1 ? 1 : n; }
 
@@ -589,19 +708,28 @@ body {
     return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
   }
 
+  // Layout-dependent values are read here rather than per frame, so scrolling
+  // never forces a reflow.
   function measure() {
-    distance = Math.max(hero.offsetHeight, 1);
+    heroHeight = Math.max(hero.offsetHeight, 1);
+    aboutTop = about.offsetTop;
     apply();
   }
 
   function apply() {
     queued = false;
-    var raw = clamp01(window.scrollY / distance);
-    root.style.setProperty("--p", easeInOutCubic(raw).toFixed(4));
-    // Hero-only elements lead out; the Work eyebrow trails in behind them,
-    // so the bottom-left slot is empty before the bio arrives in it.
-    root.style.setProperty("--out", clamp01(1 - raw / 0.45).toFixed(4));
-    root.style.setProperty("--in", clamp01((raw - 0.5) / 0.4).toFixed(4));
+    var y = window.scrollY;
+
+    var toWork = clamp01(y / heroHeight);
+    root.style.setProperty("--p", easeInOutCubic(toWork).toFixed(4));
+    // Hero-only elements lead out; the eyebrow trails in behind them, so the
+    // bottom-left slot is empty before the bio arrives in it.
+    root.style.setProperty("--out", clamp01(1 - toWork / 0.45).toFixed(4));
+    root.style.setProperty("--in", clamp01((toWork - 0.5) / 0.4).toFixed(4));
+
+    var ramp = Math.max(window.innerHeight * ABOUT_RAMP, 1);
+    var toAbout = clamp01((y - (aboutTop - ramp)) / ramp);
+    root.style.setProperty("--q", easeInOutCubic(toAbout).toFixed(4));
   }
 
   function onScroll() {
@@ -614,6 +742,10 @@ body {
   measure();
   window.addEventListener("scroll", onScroll, { passive: true });
   window.addEventListener("resize", measure);
+  // Switzer and Newsreader change the section offsets when they swap in.
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(measure);
+  }
 })();
 </script>
 </body>
