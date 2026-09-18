@@ -60,10 +60,14 @@
      --in   work-only elements fading in (trails)
      --q    eased work -> about progress (rail, eyebrow, nav)
      --r    eased about -> extras progress (eyebrow, nav)
-     --t    eased extras -> contact progress (nav returns to the top) */
+     --t    eased extras -> contact progress (nav returns to the top)
+     --hand 0 -> 1 across the gap between --out ending and --in starting,
+            so anything that changes place rather than travelling can do it
+            in the one window where neither state is on screen */
   --p: 0;
   --out: 1;
   --in: 0;
+  --hand: 0;
   --q: 0;
   --r: 0;
   --t: 0;
@@ -911,23 +915,40 @@ a[href]:focus-visible {
     --t-column: calc((100% - (var(--margin) * 2) - var(--t-gutter)) / 2);
   }
 
-  /* There is no bio in the rail at this width, so the logo has nothing to
-     clear: it goes from the top-left corner straight to a full-bleed band at
-     the foot, gliding diagonally on the same scroll value as everything else.
-     The band's foot is 24px up and it stands 30px tall, which leaves the nav
-     its own 60px footing just above. */
+  /* There is no bio in the rail at this width, so the logo does not travel to
+     its Work position — it leaves the hero upwards as the rest of the hero
+     fades, and the band rises into the foot of the viewport behind it. The two
+     are the same element: it changes place on --hand, which steps across in
+     the window where the hero has gone and Work has not arrived, so the jump
+     itself is never on screen.
+
+     The band was drawn 30px tall standing 24px off the edge; now that it runs
+     down to the edge, the wordmark is centred in the whole 54 rather than in
+     the top 30, less a pixel for Schoolbell's ink sitting that far below the
+     middle of its own line box. */
   .logo {
     --header-top: 40px;
     --logo-band: 30px;
     --logo-band-foot: 24px;
-    left: calc(var(--margin) + (var(--p) * (50% - var(--margin))));
-    transform: translateX(calc(var(--p) * -50%));
+    --logo-band-total: calc(var(--logo-band) + var(--logo-band-foot));
+    --logo-ink-offset: 1px;
+    left: calc(var(--margin) + (var(--hand) * (50% - var(--margin))));
     top: calc(
       var(--header-top)
-      + (var(--p) * (var(--vh) - var(--logo-band-foot) - var(--logo-band)
-                     + ((var(--logo-band) - var(--logo-lead)) / 2)
-                     - var(--header-top)))
+      + (var(--hand) * (var(--vh) - var(--logo-band-total)
+                        + ((var(--logo-band-total) - var(--logo-lead)) / 2)
+                        - var(--logo-ink-offset)
+                        - var(--header-top)))
     );
+    /* Up and out of the hero, then up from under the edge into Work. Each term
+       is zeroed by --hand while the other one is running. */
+    transform:
+      translateX(calc(var(--hand) * -50%))
+      translateY(calc(
+        ((1 - var(--hand)) * (1 - var(--out)) * -24px)
+        + (var(--hand) * (1 - var(--in)) * var(--logo-band-total))
+      ));
+    opacity: max(var(--out), var(--in));
   }
 
   /* The band itself. It is centred on the logo, which is still travelling while
@@ -941,23 +962,31 @@ a[href]:focus-visible {
     content: "";
     position: absolute;
     left: 50%;
-    top: calc((var(--logo-lead) - var(--logo-band)) / 2);
+    top: calc(var(--logo-ink-offset)
+              - ((var(--logo-band-total) - var(--logo-lead)) / 2));
     width: 200vw;
     /* The band reads as 30px tall, but it runs on down to the foot of the
        viewport: the 24px it stands above the edge would otherwise be a strip
        of whatever card happens to be passing behind it. */
-    height: calc(var(--logo-band) + var(--logo-band-foot));
+    height: var(--logo-band-total);
     transform: translateX(-50%);
     background: var(--ground);
-    opacity: var(--in);
+    /* --hand, not --in: the logo's own opacity already carries the fade, and
+       squaring it would make the band lag behind the wordmark. */
+    opacity: var(--hand);
     z-index: -1;
   }
 
-  /* Absent from the hero; arrives with Work and stays on its 60px footing. */
+  /* Absent from the hero; rises from under the edge with the logo band and
+     stays on its 60px footing. Its own height plus that footing is exactly the
+     distance to the edge, so it starts fully off screen. */
   .nav {
     top: auto;
     bottom: var(--footer-offset);
     opacity: var(--in);
+    transform:
+      translateX(-50%)
+      translateY(calc((1 - var(--in)) * (var(--footer-offset) + var(--nav-height))));
   }
 
   /* Ordinary hero content: placed against the document, so it scrolls away
@@ -1441,6 +1470,9 @@ html { scroll-behavior: smooth; }
     // bottom-left slot is empty before the bio arrives in it.
     root.style.setProperty("--out", clamp01(1 - toWork / 0.45).toFixed(4));
     root.style.setProperty("--in", clamp01((toWork - 0.5) / 0.4).toFixed(4));
+    // The window between those two, where nothing hero and nothing Work is on
+    // screen. Anything that changes place rather than travelling moves here.
+    root.style.setProperty("--hand", clamp01((toWork - 0.45) / 0.05).toFixed(4));
 
     var ramp = Math.max(window.innerHeight * RAMP, 1);
     var toAbout = clamp01((y - (aboutTop - ramp)) / ramp);
