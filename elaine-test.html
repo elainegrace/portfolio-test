@@ -642,17 +642,23 @@ a.nav__item { text-decoration: none; }
 /* ================================================================== *
  * Extras — 12-column guide; the carousel runs full bleed
  * ================================================================== */
+/* The carousel is anchored from the section top, and the blurb is taken out
+   of the flow above it. Stating one relative to the other would let a change
+   to that copy drag the carousel with it — which is exactly what happened
+   when the blurb's type was standardised. */
 .extras {
   position: relative;
   z-index: var(--z-content);
   min-height: var(--vh);
-  padding-top: var(--eyebrow-top);
+  padding-top: 167.5px;
   padding-bottom: 161px;
 }
 
-/* Columns 9-12, on the same line as the eyebrow */
+/* Columns 9-12, on the eyebrow's line */
 .extras__intro {
-  margin-left: calc(var(--margin) + (var(--pitch) * 8));
+  position: absolute;
+  top: var(--eyebrow-top);
+  left: calc(var(--margin) + (var(--pitch) * 8));
   width: calc((var(--column) * 4) + (var(--gutter) * 3));
   max-width: calc(100% - var(--margin) * 2);
 }
@@ -669,7 +675,6 @@ a.nav__item { text-decoration: none; }
 /* Full bleed: the track is clipped by the viewport, not by the margins, so
    tiles enter and leave off-screen rather than at the 24px guides. */
 .extras__carousel {
-  margin-top: 80.5px;
   overflow: hidden;
 }
 
