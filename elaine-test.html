@@ -346,15 +346,11 @@ a.nav__item { text-decoration: none; }
   background: var(--placeholder);
 }
 
-/* Figma crops a 3:4 fill inside the 150 square: the image renders 150 x 200
-   and is pulled up 50px, so the lower 150px is what shows. */
+/* A plain centred cover now — the frame dropped the offset crop it used for
+   the previous 3:4 photograph. */
 .hero__portrait img {
-  position: absolute;
-  left: 0;
-  top: -33.3333%;
   width: 100%;
-  height: 133.3333%;
-  max-width: none;
+  height: 100%;
   object-fit: cover;
   display: block;
   pointer-events: none;
@@ -765,12 +761,8 @@ a.nav__item { text-decoration: none; }
 }
 
 .contact__portrait img {
-  position: absolute;
-  left: 0;
-  top: -33.3333%;
   width: 100%;
-  height: 133.3333%;
-  max-width: none;
+  height: 100%;
   object-fit: cover;
   display: block;
   pointer-events: none;
