@@ -917,40 +917,70 @@ a[href]:focus-visible {
 
   /* There is no bio in the rail at this width, so the logo does not travel to
      its Work position — it leaves the hero upwards as the rest of the hero
-     fades, then rises back into the foot from under the edge. It is the same
-     element throughout: it changes place on --hand, which steps across in the
-     window where the hero has gone and Work has not arrived, so the jump is
-     never on screen. It stays on the left margin at both ends, with the nav
-     centred on its own 60px footing beside it. */
+     fades, then rises back into the foot from under the edge, centred, inside
+     its drawn mark. It is one element throughout: everything that changes
+     rather than travels does so on --hand, which steps across the window where
+     the hero has gone and Work has not arrived, so none of it is on screen.
+
+     The mark is drawn 104.9 x 44 and exports 107 x 47, the extra pixel each
+     side being its own stroke — so the box sits on 7 to put the drawn shape on
+     the 8 the frames give it. */
   .logo {
     --header-top: 40px;
-    left: var(--margin);
+    --logo-mark-w: 107px;
+    --logo-mark-h: 47px;
+    --logo-mark-foot: 7px;
+    --logo-ink-offset: 1px;   /* Schoolbell's ink, below its line box's middle */
+    left: calc(var(--margin) + (var(--hand) * (50% - var(--margin))));
     top: calc(
       var(--header-top)
-      + (var(--hand) * (var(--vh) - var(--footer-offset) - var(--logo-lead)
-                        - var(--header-top)))
+      + (var(--hand) * (var(--vh) - var(--logo-mark-foot)
+                        - (var(--logo-mark-h) / 2) - (var(--logo-lead) / 2)
+                        - var(--logo-ink-offset) - var(--header-top)))
     );
-    /* Up and out of the hero, then up from under the edge into Work. Its foot
-       sits 60 up and it stands --logo-lead tall, so that sum is exactly the
-       distance to the edge and it starts fully off screen. Each term is zeroed
-       by --hand while the other one is running. */
-    transform: translateY(calc(
-      ((1 - var(--hand)) * (1 - var(--out)) * -24px)
-      + (var(--hand) * (1 - var(--in)) * (var(--footer-offset) + var(--logo-lead)))
-    ));
+    /* Up and out of the hero, then up from under the edge into Work. The mark's
+       foot plus its height is exactly the distance to the edge, so it starts
+       fully off screen. Each term is zeroed by --hand while the other runs. */
+    transform:
+      translateX(calc(var(--hand) * -50%))
+      translateY(calc(
+        ((1 - var(--hand)) * (1 - var(--out)) * -24px)
+        + (var(--hand) * (1 - var(--in)) * (var(--logo-mark-foot) + var(--logo-mark-h)))
+      ));
+    /* The wordmark is drawn into the mark, so the live one steps aside for it
+       rather than printing twice. It stays in the markup either way, which is
+       what a screen reader and a text search read. */
+    color: color-mix(in srgb, var(--signature), transparent calc(var(--hand) * 100%));
     opacity: max(var(--out), var(--in));
   }
 
-  /* Absent from the hero; rises from under the edge with the logo band and
-     stays on its 60px footing. Its own height plus that footing is exactly the
-     distance to the edge, so it starts fully off screen. */
+  /* The mark, centred on the wordmark it encloses — a pixel low, to sit on the
+     ink rather than on the line box. Painted behind it but inside the logo's
+     own stacking context, so cards still pass underneath the pair. */
+  .logo::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: var(--logo-mark-w);
+    height: var(--logo-mark-h);
+    transform: translate(-50%, calc(-50% + var(--logo-ink-offset)));
+    background: url("assets/logo-mark.svg") center / 100% 100% no-repeat;
+    opacity: var(--hand);
+    z-index: -1;
+  }
+
+  /* Absent from the hero; rises from under the edge with the logo and settles
+     on 64, clearing the mark that sits on 8 below it. Its own height plus that
+     footing is exactly the distance to the edge, so it starts fully off. */
   .nav {
+    --nav-foot: 64px;
     top: auto;
-    bottom: var(--footer-offset);
+    bottom: var(--nav-foot);
     opacity: var(--in);
     transform:
       translateX(-50%)
-      translateY(calc((1 - var(--in)) * (var(--footer-offset) + var(--nav-height))));
+      translateY(calc((1 - var(--in)) * (var(--nav-foot) + var(--nav-height))));
   }
 
   /* Ordinary hero content: placed against the document, so it scrolls away
