@@ -561,8 +561,16 @@ a.nav__item { text-decoration: none; }
   gap: 12px;
 }
 
+/* Three lines are reserved whether the copy fills them or not, so a two-line
+   and a three-line project come out the same height. Anything longer clamps
+   rather than pushing the card past its slot. */
 .card__summary {
   margin: 0;
+  min-height: calc(1.3em * 3);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
   font-weight: 300;
   font-size: 14px;
   line-height: 1.3;
