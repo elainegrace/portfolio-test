@@ -103,15 +103,24 @@
   --footer-offset: 60px;   /* everything bottom-pinned sits 60px up */
   --eyebrow-top: 40px;
 
-  /* Elaine Bio: 464px in the hero (one column of the 3-col guide) at 28px
-     Switzer / 30px Schoolbell, down to 330px at 20px for both in Work.
-     Leading follows the larger of the two, as the frame does. */
+  /* Elaine Bio: 464px at top 200px in the hero, down to three columns of the
+     Work guide, 60px off the bottom. The hero measure is flat — the frames
+     draw 464 at 811 as at 1440 — while the Work measure is fluid, so the copy
+     reflows on the way rather than the type scaling.
+
+     Both faces are set at one size, so 130% leading comes out uniform however
+     a line mixes them, and the tracking stays -1% at either end. */
   --bio-top-hero: 200px;
-  --bio-width: calc(464px - (var(--p) * 134px));
-  --bio-size: calc(28px - (var(--p) * 8px));
-  --bio-size-serif: calc(30px - (var(--p) * 10px));
+  --bio-width-hero: 464px;
+  --bio-width-work: calc((var(--column) * 3) + (var(--gutter) * 2));
+  --bio-width: calc(
+    var(--bio-width-hero)
+    - (var(--p) * (var(--bio-width-hero) - var(--bio-width-work)))
+  );
+  --bio-size: calc(30px - (var(--p) * 10px));
   --bio-lead: calc(39px - (var(--p) * 13px));
   --bio-track: calc(-0.3px + (var(--p) * 0.1px));
+  --bio-logo-gap: 16px;   /* between the bio's head and the logo's foot */
 
   /* Two values that depend on how the copy actually sets: the bio's height
      once it reaches its Work size, and how far the first line must clear the
@@ -170,17 +179,19 @@ body {
  * then stays put for the rest of the page.
  * ================================================================== */
 
-/* Elaine Logo: top 20px -> 180px off the bottom (clearing the bio below it)
-   -> 60px off the bottom once the bio leaves and it takes that slot. Both
-   Work and About positions are stated as distances from its foot, so a change
-   of line-height cannot drift them. */
+/* Elaine Logo: top 20px -> stacked 16px above the bio in Work -> 60px off the
+   bottom once the bio leaves and it takes that slot. Every position is stated
+   as a distance from its own foot, and the Work one rides the bio's measured
+   height, so a bio that reflows to more lines carries the logo up with it
+   instead of being run over. */
 .logo {
   position: fixed;
   left: var(--margin);
   top: calc(
     var(--header-top)
-    + (var(--p) * (var(--vh) - 180px - var(--logo-lead) - var(--header-top)))
-    + (var(--q) * 120px)
+    + (var(--p) * (var(--vh) - var(--footer-offset) - var(--bio-work-height)
+                   - var(--bio-logo-gap) - var(--logo-lead) - var(--header-top)))
+    + (var(--q) * (var(--bio-work-height) + var(--bio-logo-gap)))
   );
   z-index: var(--z-rail);
   margin: 0;
@@ -195,9 +206,9 @@ body {
   opacity: calc(1 - var(--t));
 }
 
-/* Elaine Bio: 464px at top 200px -> 330px, 60px off the bottom. Not a scale —
-   measure and type size are interpolated separately and the copy reflows on
-   the way. The Work end is stated as a distance from the bio's own foot, so
+/* Elaine Bio: 464px at top 200px -> three columns, 60px off the bottom. Not a
+   scale — measure and type size are interpolated separately and the copy
+   reflows on the way. The Work end is stated as a distance from its own foot, so
    copy that sets to a different number of lines still lands on 60. */
 .bio {
   position: fixed;
@@ -249,16 +260,16 @@ body {
 .bio__brk { display: none; }
 .bio.is-work .bio__brk { display: inline; }
 
-/* Schoolbell's vertical metrics differ from Switzer's — its natural line box
-   is 1.39em against Switzer's — so a shared line-height
-   would union into a taller line box. Zeroing the inline leading lets the
-   block's strut alone set it — and the strut follows the larger of the two
-   sizes, which is how the frame spaces its mixed lines. */
+/* Size is inherited, so both faces are always set at one size and 130% means
+   one number per line. That alone is not enough: Schoolbell's content area is
+   taller than Switzer's even at a matched size, so letting these spans carry
+   any leading of their own unions the mixed lines taller — 159px for the hero
+   block against the 156px the frame draws, 165px at the font's natural
+   leading. Zeroing it leaves the block's strut as the only authority. */
 .bio em {
   font-family: "Schoolbell", "Comic Sans MS", cursive;
   font-weight: 400;
   font-style: normal;
-  font-size: var(--bio-size-serif);
   line-height: 0;
   color: var(--ink);
 }
@@ -481,10 +492,16 @@ a.nav__item { text-decoration: none; }
 .eyebrow__label--extras { --w: var(--w-extras); }
 .eyebrow__label--contact { --w: var(--w-contact); }
 
-/* Columns 5-12 of the 12-column guide */
+/* Columns 5-12 of the 12-column guide, capped at the 923px the artboard draws
+   and held against the right margin once it caps — which happens at 1440.5px,
+   where eight columns are exactly 923. Below that the auto left margin lands
+   on column 5 on its own: the grid is symmetric, so what is left over after
+   eight columns and the right margin IS the four-pitch offset. */
 .work__cards {
-  margin-left: calc(var(--margin) + (var(--pitch) * 4));
+  margin-left: auto;
+  margin-right: var(--margin);
   width: calc((var(--column) * 8) + (var(--gutter) * 7));
+  max-width: 923px;
 }
 
 /* Each project gets an 809px slot with its card at the top, which is how the
@@ -497,11 +514,11 @@ a.nav__item { text-decoration: none; }
   margin: 0;
 }
 
-/* 923 x 550 at the 1440 artboard, square corners. Held as a ratio so it
-   scales with the fluid grid instead of fixing one artboard's height. */
+/* 550px tall at every desktop width — the frames draw it 923 x 550 at 1440 and
+   504 x 550 at 811 — so the card narrows by cropping rather than by shrinking.
+   Square corners. */
 .card__media {
-  aspect-ratio: 923 / 550;
-  max-width: 100%;
+  height: 550px;
   background: var(--placeholder-media);
 }
 
@@ -578,38 +595,41 @@ a.nav__item { text-decoration: none; }
   line-height: 1.3;
   letter-spacing: -0.36px;
   color: var(--ink-strong);
-  white-space: nowrap;
 }
 
-/* Year, rule, then the tag list — 8px between the three, 12px within. */
+/* Year, rule, then the tag list — 8px between the three, 12px within. Both
+   rows wrap: at 811 the writeup column is 244px and card 4 carries 308px of
+   tags, so running past the edge is the only other option. */
 .card__tags {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
+  column-gap: 8px;
+  row-gap: 4px;
   margin: 0;
   font-weight: 400;
   font-size: 12px;
   line-height: 1.3;
   letter-spacing: -0.24px;
   color: var(--muted);
-  white-space: nowrap;
 }
 
 .card__taglist {
   display: flex;
-  gap: 12px;
+  flex-wrap: wrap;
+  column-gap: 12px;
+  row-gap: 4px;
 }
 
+/* A tag breaks between tags, never inside one. */
+.card__tags span { white-space: nowrap; }
+
 /* Three lines are reserved whether the copy fills them or not, so a two-line
-   and a three-line project come out the same height. Anything longer clamps
-   rather than pushing the card past its slot. */
+   and a three-line project come out the same height. No maximum: at narrow
+   desktop widths these run to four lines, and the 809px slot has the room. */
 .card__summary {
   margin: 0;
   min-height: calc(1.3em * 3);
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
-  overflow: hidden;
   font-weight: 300;
   font-size: 14px;
   line-height: 1.3;
@@ -909,15 +929,14 @@ a[href]:focus-visible {
     top: 300px;
     left: var(--margin);
     width: var(--t-column);
-    min-width: 176px;
-    font-size: 18px;
+    min-width: 179px;
+    max-width: var(--bio-width-hero);   /* 464, as on desktop */
+    font-size: 20px;
     line-height: 26px;
-    letter-spacing: -0.18px;
+    letter-spacing: -0.2px;
     opacity: 1;
     transform: none;
   }
-
-  .bio em { font-size: 20px; }
 
   /* The label takes its own line, so the indent that cleared it goes away. */
   .bio__title {
@@ -948,7 +967,8 @@ a[href]:focus-visible {
   .hero__status {
     left: var(--margin);
     width: var(--t-column);
-    min-width: 176px;
+    min-width: 179px;
+    max-width: var(--bio-width-hero);
     gap: 12px;
   }
 
