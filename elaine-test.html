@@ -874,6 +874,105 @@ a[href]:focus-visible {
   outline-offset: 3px;
 }
 
+/* ================================================================== *
+ * Tablet — 810px down to 391px. Two columns, 12px margin and gutter.
+ *
+ * The hero is laid out on its own terms here rather than scaled down:
+ * no nav, the PRODUCT DESIGNER label sits above the bio instead of
+ * beside it, and the bio does not travel into Work — so it is ordinary
+ * hero content at this width, not part of the fixed rail.
+ *
+ * Only the hero is designed so far. Everything below it still carries
+ * desktop metrics and will overflow sideways until those sections exist.
+ * ================================================================== */
+@media (max-width: 810px) {
+  :root {
+    --margin: 12px;
+    --t-gutter: 12px;
+    --t-column: calc((100% - (var(--margin) * 2) - var(--t-gutter)) / 2);
+  }
+
+  /* Same travel as desktop, just starting lower. */
+  .logo { --header-top: 40px; }
+
+  /* Absent from the hero; arrives with Work and stays on its 60px footing. */
+  .nav {
+    top: auto;
+    bottom: var(--footer-offset);
+    opacity: var(--in);
+  }
+
+  /* Ordinary hero content: placed against the document, so it scrolls away
+     with the section rather than being pinned like the desktop rail. */
+  .bio {
+    position: absolute;
+    top: 300px;
+    left: var(--margin);
+    width: var(--t-column);
+    min-width: 176px;
+    font-size: 18px;
+    line-height: 26px;
+    letter-spacing: -0.18px;
+    opacity: 1;
+    transform: none;
+  }
+
+  .bio em { font-size: 20px; }
+
+  /* The label takes its own line, so the indent that cleared it goes away. */
+  .bio__title {
+    position: static;
+    display: block;
+    margin-bottom: 8px;
+    line-height: 1.3;
+    opacity: 1;
+  }
+
+  .bio__text { text-indent: 0; }
+
+  /* No morph here, so the Work-only breaks never come into force. */
+  .bio.is-work .bio__brk { display: none; }
+
+  /* Nothing is handing over, so nothing needs to fade out. */
+  .hero__transient {
+    opacity: 1;
+    transform: none;
+  }
+
+  .hero__portrait {
+    left: auto;
+    right: var(--margin);
+    top: 300px;
+  }
+
+  .hero__status {
+    left: var(--margin);
+    width: var(--t-column);
+    min-width: 176px;
+    gap: 12px;
+  }
+
+  /* Label above value rather than beside it. */
+  .hero__status-row { display: block; }
+
+  .hero__status dt {
+    width: auto;
+    font-size: 12px;
+    white-space: normal;
+  }
+
+  .hero__status dd {
+    font-size: 12px;
+    white-space: normal;
+  }
+
+  .hero__time {
+    left: auto;
+    right: var(--margin);
+    font-size: 12px;
+  }
+}
+
 html { scroll-behavior: smooth; }
 
 /* The transition is scroll position, not autonomous motion, so it stays —
