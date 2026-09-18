@@ -242,6 +242,13 @@ body {
   text-indent: var(--bio-indent);
 }
 
+/* The Work state breaks after "someone" and after "and think,"; the hero
+   wraps freely and lands on its own four lines without help. One element,
+   two break structures — so both breaks live in the markup and only take
+   effect once the bio has essentially reached its Work size. */
+.bio__brk { display: none; }
+.bio.is-work .bio__brk { display: inline; }
+
 /* Schoolbell's vertical metrics differ from Switzer's — its natural line box
    is 1.39em against Switzer's — so a shared line-height
    would union into a taller line box. Zeroing the inline leading lets the
@@ -1038,7 +1045,7 @@ html { scroll-behavior: smooth; }
 
   <h1 class="bio">
     <span class="bio__title">Product designer</span>
-    <span class="bio__text">I <em>design</em> the logic, the flow, and the structure that makes someone open <em>an app</em> or <em>a website</em> and think, <em>“This just works.”</em></span>
+    <span class="bio__text">I <em>design</em> the logic, the flow, and the structure that makes someone<br class="bio__brk"> open <em>an app</em> or <em>a website</em> and think,<br class="bio__brk"> <em>“This just works.”</em></span>
   </h1>
 
   <nav class="nav" aria-label="Primary">
@@ -1201,8 +1208,13 @@ html { scroll-behavior: smooth; }
       getComputedStyle(root).getPropertyValue("--bio-label-gap")
     ) || 0;
     root.style.setProperty("--bio-indent-base", (bioTitle.offsetWidth + gap) + "px");
+    // The Work breaks have to be in force for this read, or the height comes
+    // back as the freely-wrapped one and the bio misses its footing.
+    var wasWork = bio.classList.contains("is-work");
+    bio.classList.add("is-work");
     root.style.setProperty("--p", "1");
     root.style.setProperty("--bio-work-height", bio.offsetHeight + "px");
+    if (!wasWork) bio.classList.remove("is-work");
   }
 
   function apply() {
@@ -1210,7 +1222,11 @@ html { scroll-behavior: smooth; }
     var y = window.scrollY;
 
     var toWork = clamp01(y / heroHeight);
-    root.style.setProperty("--p", easeInOutCubic(toWork).toFixed(4));
+    var eased = easeInOutCubic(toWork);
+    root.style.setProperty("--p", eased.toFixed(4));
+    // Late enough that the bio is already at its Work measure, so switching
+    // the breaks in costs one small reflow rather than a visible jump.
+    if (bio) bio.classList.toggle("is-work", eased >= 0.9);
     // Hero-only elements lead out; the eyebrow trails in behind them, so the
     // bottom-left slot is empty before the bio arrives in it.
     root.style.setProperty("--out", clamp01(1 - toWork / 0.45).toFixed(4));
