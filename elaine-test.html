@@ -943,7 +943,10 @@ a[href]:focus-visible {
     left: 50%;
     top: calc((var(--logo-lead) - var(--logo-band)) / 2);
     width: 200vw;
-    height: var(--logo-band);
+    /* The band reads as 30px tall, but it runs on down to the foot of the
+       viewport: the 24px it stands above the edge would otherwise be a strip
+       of whatever card happens to be passing behind it. */
+    height: calc(var(--logo-band) + var(--logo-band-foot));
     transform: translateX(-50%);
     background: var(--ground);
     opacity: var(--in);
