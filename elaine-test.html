@@ -79,8 +79,15 @@
 
   /* Vertical anchors */
   --header-top: 20px;
-  --logo-lead: 18.2px;     /* 14px x 130%, so the logo can anchor by its foot */
-  --nav-height: calc(24px + (12px * 1.3));   /* 12+12 padding over one 130% line */
+
+  /* Both bits of chrome anchor by their feet, so their heights are derived
+     from their own type rather than written down. Changing a size at a
+     breakpoint moves the anchor with it. */
+  --logo-size: 14px;
+  --logo-lead: calc(var(--logo-size) * 1.3);
+  --nav-size: 12px;
+  --nav-pad-y: 12px;
+  --nav-height: calc((var(--nav-pad-y) * 2) + (var(--nav-size) * 1.3));
   --footer-offset: 60px;   /* everything bottom-pinned sits 60px up */
   --eyebrow-top: 40px;
 
@@ -93,8 +100,16 @@
   --bio-size-serif: calc(30px - (var(--p) * 10px));
   --bio-lead: calc(39px - (var(--p) * 13px));
   --bio-track: calc(-0.3px + (var(--p) * 0.1px));
-  /* Clears the PRODUCT DESIGNER label on the first line; closes up by Work. */
-  --bio-indent: calc(167px * (1 - var(--p)));
+
+  /* Two values that depend on how the copy actually sets: the bio's height
+     once it reaches its Work size, and how far the first line must clear the
+     PRODUCT DESIGNER label. Both are measured at runtime — the figures here
+     are only fallbacks for before that runs. Breakpoints change the measure
+     and the copy, so neither can be written down. */
+  --bio-work-height: 104px;
+  --bio-indent-base: 167px;
+  --bio-label-gap: 36px;
+  --bio-indent: calc(var(--bio-indent-base) * (1 - var(--p)));
 
   /* Colour */
   --ink: #666666;
@@ -160,7 +175,7 @@ body {
   font-family: "Newsreader", Georgia, serif;
   font-style: italic;
   font-weight: 500;
-  font-size: 14px;
+  font-size: var(--logo-size);
   line-height: 1.3;
   letter-spacing: -0.28px;
   color: var(--signature);
@@ -169,13 +184,18 @@ body {
   opacity: calc(1 - var(--t));
 }
 
-/* Elaine Bio: 478px/30px at top 200px -> 330px/20px, 60px off the bottom.
-   Note this is not a scale — 478 x (20/30) is 318.7, not 330 — so measure and
-   type size are interpolated separately and the copy reflows on the way. */
+/* Elaine Bio: 464px at top 200px -> 330px, 60px off the bottom. Not a scale —
+   measure and type size are interpolated separately and the copy reflows on
+   the way. The Work end is stated as a distance from the bio's own foot, so
+   copy that sets to a different number of lines still lands on 60. */
 .bio {
   position: fixed;
   left: var(--margin);
-  top: calc(var(--bio-top-hero) + (var(--p) * (var(--vh) - 364px)));
+  top: calc(
+    var(--bio-top-hero)
+    + (var(--p) * (var(--vh) - var(--footer-offset)
+                   - var(--bio-work-height) - var(--bio-top-hero)))
+  );
   z-index: var(--z-rail);
   width: var(--bio-width);
   margin: 0;
@@ -237,7 +257,7 @@ body {
   );
   transform: translateX(-50%);
   z-index: var(--z-nav);
-  padding: 12px 16px;
+  padding: var(--nav-pad-y) 16px;
   background: var(--nav-surface);
   -webkit-backdrop-filter: blur(4px);
   backdrop-filter: blur(4px);
@@ -257,7 +277,7 @@ a.nav__item { text-decoration: none; }
 
 .nav__item {
   display: block;
-  font-size: 12px;
+  font-size: var(--nav-size);
   line-height: 1.3;
   letter-spacing: -0.12px;
   color: var(--muted);
@@ -1138,6 +1158,8 @@ html { scroll-behavior: smooth; }
   var about = document.querySelector(".about");
   var extras = document.querySelector(".extras");
   var contact = document.querySelector(".contact");
+  var bio = document.querySelector(".bio");
+  var bioTitle = document.querySelector(".bio__title");
   var heroHeight = 1;
   var aboutTop = 0;
   var extrasTop = 0;
@@ -1162,7 +1184,23 @@ html { scroll-behavior: smooth; }
     aboutTop = about.offsetTop;
     extrasTop = extras.offsetTop;
     contactTop = contact.offsetTop;
+    measureBio();
     apply();
+  }
+
+  // How tall the bio ends up at its Work size, and how far the first line has
+  // to clear the label, both depend on how the copy happens to set. Rather
+  // than write those numbers down — they go stale the moment the copy or the
+  // measure changes — hold the bio at its Work size for one read and take
+  // them. apply() puts the progress value back before anything paints.
+  function measureBio() {
+    if (!bio || !bioTitle) return;
+    var gap = parseFloat(
+      getComputedStyle(root).getPropertyValue("--bio-label-gap")
+    ) || 0;
+    root.style.setProperty("--bio-indent-base", (bioTitle.offsetWidth + gap) + "px");
+    root.style.setProperty("--p", "1");
+    root.style.setProperty("--bio-work-height", bio.offsetHeight + "px");
   }
 
   function apply() {
