@@ -917,64 +917,28 @@ a[href]:focus-visible {
 
   /* There is no bio in the rail at this width, so the logo does not travel to
      its Work position — it leaves the hero upwards as the rest of the hero
-     fades, and the band rises into the foot of the viewport behind it. The two
-     are the same element: it changes place on --hand, which steps across in
-     the window where the hero has gone and Work has not arrived, so the jump
-     itself is never on screen.
-
-     The band was drawn 30px tall standing 24px off the edge; now that it runs
-     down to the edge, the wordmark is centred in the whole 54 rather than in
-     the top 30, less a pixel for Schoolbell's ink sitting that far below the
-     middle of its own line box. */
+     fades, then rises back into the foot from under the edge. It is the same
+     element throughout: it changes place on --hand, which steps across in the
+     window where the hero has gone and Work has not arrived, so the jump is
+     never on screen. It stays on the left margin at both ends, with the nav
+     centred on its own 60px footing beside it. */
   .logo {
     --header-top: 40px;
-    --logo-band: 30px;
-    --logo-band-foot: 24px;
-    --logo-band-total: calc(var(--logo-band) + var(--logo-band-foot));
-    --logo-ink-offset: 1px;
-    left: calc(var(--margin) + (var(--hand) * (50% - var(--margin))));
+    left: var(--margin);
     top: calc(
       var(--header-top)
-      + (var(--hand) * (var(--vh) - var(--logo-band-total)
-                        + ((var(--logo-band-total) - var(--logo-lead)) / 2)
-                        - var(--logo-ink-offset)
+      + (var(--hand) * (var(--vh) - var(--footer-offset) - var(--logo-lead)
                         - var(--header-top)))
     );
-    /* Up and out of the hero, then up from under the edge into Work. Each term
-       is zeroed by --hand while the other one is running. */
-    transform:
-      translateX(calc(var(--hand) * -50%))
-      translateY(calc(
-        ((1 - var(--hand)) * (1 - var(--out)) * -24px)
-        + (var(--hand) * (1 - var(--in)) * var(--logo-band-total))
-      ));
+    /* Up and out of the hero, then up from under the edge into Work. Its foot
+       sits 60 up and it stands --logo-lead tall, so that sum is exactly the
+       distance to the edge and it starts fully off screen. Each term is zeroed
+       by --hand while the other one is running. */
+    transform: translateY(calc(
+      ((1 - var(--hand)) * (1 - var(--out)) * -24px)
+      + (var(--hand) * (1 - var(--in)) * (var(--footer-offset) + var(--logo-lead)))
+    ));
     opacity: max(var(--out), var(--in));
-  }
-
-  /* The band itself. It is centred on the logo, which is still travelling while
-     the band fades in, so it is cut twice the viewport wide — at 100vw it comes
-     up short on one side for the whole of the move. It rides --in rather than
-     --p so it arrives after the hero content has cleared out, and it is painted
-     behind the wordmark but inside the logo's own stacking context, so project
-     cards pass underneath the pair. Being inside a fixed element, its width
-     never reaches the document's scroll. */
-  .logo::before {
-    content: "";
-    position: absolute;
-    left: 50%;
-    top: calc(var(--logo-ink-offset)
-              - ((var(--logo-band-total) - var(--logo-lead)) / 2));
-    width: 200vw;
-    /* The band reads as 30px tall, but it runs on down to the foot of the
-       viewport: the 24px it stands above the edge would otherwise be a strip
-       of whatever card happens to be passing behind it. */
-    height: var(--logo-band-total);
-    transform: translateX(-50%);
-    background: var(--ground);
-    /* --hand, not --in: the logo's own opacity already carries the fade, and
-       squaring it would make the band lag behind the wordmark. */
-    opacity: var(--hand);
-    z-index: -1;
   }
 
   /* Absent from the hero; rises from under the edge with the logo band and
@@ -1057,6 +1021,11 @@ a[href]:focus-visible {
     left: auto;
     right: var(--margin);
     font-size: 12px;
+  }
+
+  .eyebrow__label {
+    font-size: 14px;
+    letter-spacing: -0.28px;
   }
 
   /* ---- Work ------------------------------------------------------
