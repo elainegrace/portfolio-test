@@ -96,11 +96,17 @@
   /* Vertical anchors */
   --header-top: 20px;
 
-  /* Both bits of chrome anchor by their feet, so their heights are derived
-     from their own type rather than written down. Changing a size at a
-     breakpoint moves the anchor with it. */
+  /* The nav anchors by its foot, so its height is derived from its own type
+     rather than written down. Changing a size at a breakpoint moves it too. */
+  /* The logo is a drawn mark. It is drawn 104.9 x 44 and exports 107 x 47 —
+     the extra pixel each side is its own 2px stroke straddling the path. The
+     element is the drawn shape, so every position it is given is the position
+     the frames give; the file just bleeds past it. */
   --logo-size: 14px;
-  --logo-lead: calc(var(--logo-size) * 1.3);
+  --logo-w: 104.9px;
+  --logo-h: 44.04px;
+  --logo-mark-w: 107px;
+  --logo-mark-h: 47px;
   --nav-size: 12px;
   --nav-pad-y: 12px;
   --nav-height: calc((var(--nav-pad-y) * 2) + (var(--nav-size) * 1.3));
@@ -187,27 +193,51 @@ body {
    bottom once the bio leaves and it takes that slot. Every position is stated
    as a distance from its own foot, and the Work one rides the bio's measured
    height, so a bio that reflows to more lines carries the logo up with it
-   instead of being run over. */
+   instead of being run over. The mark took the wordmark's anchors, so none of
+   those positions moved — the drawing grew around them. */
 .logo {
   position: fixed;
   left: var(--margin);
   top: calc(
     var(--header-top)
     + (var(--p) * (var(--vh) - var(--footer-offset) - var(--bio-work-height)
-                   - var(--bio-logo-gap) - var(--logo-lead) - var(--header-top)))
+                   - var(--bio-logo-gap) - var(--logo-h) - var(--header-top)))
     + (var(--q) * (var(--bio-work-height) + var(--bio-logo-gap)))
   );
   z-index: var(--z-rail);
   margin: 0;
+  width: var(--logo-w);
+  height: var(--logo-h);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-family: "Schoolbell", "Comic Sans MS", cursive;
   font-weight: 400;
   font-size: var(--logo-size);
   line-height: 1.3;
   letter-spacing: -0.28px;
-  color: var(--signature);
+  /* The wordmark is drawn into the mark, so the live one is not printed. It
+     stays in the markup, which is what a screen reader and a text search read,
+     and what the page falls back to if the file ever fails to load. */
+  color: transparent;
   white-space: nowrap;
   /* Contact has no logo — the copyright takes this corner. */
   opacity: calc(1 - var(--t));
+}
+
+/* The mark, bleeding its stroke a pixel past the shape the positions are given
+   for. Painted behind the wordmark but inside the logo's own stacking context,
+   so page content still passes underneath the pair. */
+.logo::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: var(--logo-mark-w);
+  height: var(--logo-mark-h);
+  transform: translate(-50%, -50%);
+  background: url("assets/logo-mark.svg") center / 100% 100% no-repeat;
+  z-index: -1;
 }
 
 /* Elaine Bio: 464px at top 200px -> three columns, 60px off the bottom. Not a
@@ -922,52 +952,27 @@ a[href]:focus-visible {
      rather than travels does so on --hand, which steps across the window where
      the hero has gone and Work has not arrived, so none of it is on screen.
 
-     The mark is drawn 104.9 x 44 and exports 107 x 47, the extra pixel each
-     side being its own stroke — so the box sits on 7 to put the drawn shape on
-     the 8 the frames give it. */
+     Its Work foot is 8, with the nav on 64 above it. */
   .logo {
     --header-top: 40px;
-    --logo-mark-w: 107px;
-    --logo-mark-h: 47px;
-    --logo-mark-foot: 7px;
-    --logo-ink-offset: 1px;   /* Schoolbell's ink, below its line box's middle */
+    --logo-foot: 8px;
     left: calc(var(--margin) + (var(--hand) * (50% - var(--margin))));
     top: calc(
       var(--header-top)
-      + (var(--hand) * (var(--vh) - var(--logo-mark-foot)
-                        - (var(--logo-mark-h) / 2) - (var(--logo-lead) / 2)
-                        - var(--logo-ink-offset) - var(--header-top)))
+      + (var(--hand) * (var(--vh) - var(--logo-foot) - var(--logo-h)
+                        - var(--header-top)))
     );
-    /* Up and out of the hero, then up from under the edge into Work. The mark's
-       foot plus its height is exactly the distance to the edge, so it starts
-       fully off screen. Each term is zeroed by --hand while the other runs. */
+    /* Up and out of the hero, then up from under the edge into Work. Its foot
+       plus the mark's full height clears the edge even with the stroke's bleed,
+       so it starts fully off screen. Each term is zeroed by --hand while the
+       other one is running. */
     transform:
       translateX(calc(var(--hand) * -50%))
       translateY(calc(
         ((1 - var(--hand)) * (1 - var(--out)) * -24px)
-        + (var(--hand) * (1 - var(--in)) * (var(--logo-mark-foot) + var(--logo-mark-h)))
+        + (var(--hand) * (1 - var(--in)) * (var(--logo-foot) + var(--logo-mark-h)))
       ));
-    /* The wordmark is drawn into the mark, so the live one steps aside for it
-       rather than printing twice. It stays in the markup either way, which is
-       what a screen reader and a text search read. */
-    color: color-mix(in srgb, var(--signature), transparent calc(var(--hand) * 100%));
     opacity: max(var(--out), var(--in));
-  }
-
-  /* The mark, centred on the wordmark it encloses — a pixel low, to sit on the
-     ink rather than on the line box. Painted behind it but inside the logo's
-     own stacking context, so cards still pass underneath the pair. */
-  .logo::before {
-    content: "";
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    width: var(--logo-mark-w);
-    height: var(--logo-mark-h);
-    transform: translate(-50%, calc(-50% + var(--logo-ink-offset)));
-    background: url("assets/logo-mark.svg") center / 100% 100% no-repeat;
-    opacity: var(--hand);
-    z-index: -1;
   }
 
   /* Absent from the hero; rises from under the edge with the logo and settles
