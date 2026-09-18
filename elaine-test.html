@@ -81,7 +81,7 @@
   --header-top: 20px;
   --logo-lead: 18.2px;     /* 14px x 130%, so the logo can anchor by its foot */
   --footer-offset: 60px;   /* everything bottom-pinned sits 60px up */
-  --eyebrow-top: 41px;
+  --eyebrow-top: 40px;
 
   /* Elaine Bio: 464px in the hero (one column of the 3-col guide) at 28px
      Switzer / 30px Newsreader, down to 330px at 20px for both in Work.
@@ -397,9 +397,6 @@ a.nav__item { text-decoration: none; }
   position: relative;
   z-index: var(--z-content);
   min-height: var(--vh);
-  padding-top: var(--eyebrow-top);
-  /* 60px nav offset + 38px pill + 63px clearance, as the Figma article uses */
-  padding-bottom: 161px;
 }
 
 /* Part of the left rail, so it holds at the top of the viewport rather than
@@ -411,8 +408,7 @@ a.nav__item { text-decoration: none; }
   z-index: var(--z-rail);
   display: flex;
   align-items: center;
-  gap: 8px;
-  height: 14.41px;
+  gap: 4px;
   margin: 0;
   opacity: var(--in);
   transform: translateY(calc((1 - var(--in)) * 8px));
@@ -420,7 +416,7 @@ a.nav__item { text-decoration: none; }
 
 .eyebrow::before {
   content: "";
-  width: 8px;
+  width: 12px;
   height: 12px;
   background: var(--ink);
 }
@@ -433,9 +429,9 @@ a.nav__item { text-decoration: none; }
   grid-area: 1 / 1;
   opacity: var(--w);
   font-weight: 400;
-  font-size: 11.6px;
-  line-height: 14.4px;
-  letter-spacing: 0.36px;
+  font-size: 16px;
+  line-height: 1.3;
+  letter-spacing: -0.32px;
   color: var(--ink);
   text-transform: uppercase;
   white-space: nowrap;
@@ -450,12 +446,17 @@ a.nav__item { text-decoration: none; }
 .work__cards {
   margin-left: calc(var(--margin) + (var(--pitch) * 4));
   width: calc((var(--column) * 8) + (var(--gutter) * 7));
-  display: flex;
-  flex-direction: column;
-  gap: 120px;
 }
 
-.card { margin: 0; }
+/* Each project gets an 809px slot with its card at the top, which is how the
+   frames are laid out — one project per screen. The slack below the last card
+   is what clears the nav pill. min-height rather than height so longer copy
+   grows the slot instead of colliding with the next one. */
+.card {
+  min-height: 809px;
+  padding-top: var(--eyebrow-top);
+  margin: 0;
+}
 
 /* 923 x 550 at the 1440 artboard, square corners. Held as a ratio so it
    scales with the fluid grid instead of fixing one artboard's height. */
@@ -493,13 +494,26 @@ a.nav__item { text-decoration: none; }
   grid-column: 5 / span 4;
   display: flex;
   flex-direction: column;
-  gap: 7px;
+  gap: 8px;
 }
 
+/* One box for both marks: Sunollo's is near-square and Ohmyhome's is 25x40,
+   so each is contained rather than sized, and both sit centred in the 40px
+   slot the frame gives them. */
 .card__mark {
   width: 40px;
   height: 40px;
-  background: var(--placeholder-media);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card__mark img {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  display: block;
 }
 
 .card__name {
@@ -514,33 +528,45 @@ a.nav__item { text-decoration: none; }
 
 .card__head {
   display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 0;
+  flex-direction: column;
+  gap: 2px;
 }
 
 .card__title {
+  margin: 0;
   font-weight: 400;
   font-size: 18px;
   line-height: 1.3;
   letter-spacing: -0.36px;
   color: var(--ink-strong);
+  white-space: nowrap;
 }
 
-.card__year {
+/* Year, rule, then the tag list — 8px between the three, 12px within. */
+.card__tags {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
   font-weight: 400;
-  font-size: 14px;
+  font-size: 12px;
   line-height: 1.3;
-  letter-spacing: -0.28px;
+  letter-spacing: -0.24px;
   color: var(--muted);
+  white-space: nowrap;
+}
+
+.card__taglist {
+  display: flex;
+  gap: 12px;
 }
 
 .card__summary {
   margin: 0;
   font-weight: 300;
-  font-size: 15.5px;
-  line-height: 22.95px;
-  letter-spacing: -0.4px;
+  font-size: 14px;
+  line-height: 1.3;
+  letter-spacing: -0.28px;
   color: var(--ink);
 }
 
@@ -843,59 +869,69 @@ html { scroll-behavior: smooth; }
 
     <div class="work__cards">
       <article class="card">
-        <div class="card__media" role="img" aria-label="Sunollo website redesign preview"></div>
+        <div class="card__media" role="img" aria-label="Website Redesign preview"></div>
         <div class="card__meta">
           <div class="card__client">
-            <div class="card__mark" role="img" aria-label="Sunollo"></div>
+            <span class="card__mark"><img src="assets/logo-sunollo.webp" alt="Sunollo"></span>
             <p class="card__name">Sunollo</p>
           </div>
           <div class="card__details">
-            <p class="card__head"><span class="card__title">Website Redesign</span><span class="card__year">2024-2025</span></p>
-            <p class="card__summary">Redesigned Sunollo's website to embody their updated brand identity, while simplifying offerings to drive lead generation.</p>
-          </div>
-        </div>
-      </article>
-
-      <!-- Cards 02-04: layout placeholders. Only the Sunollo card exists in the
-           Figma frame, so the copy here is deliberately unwritten. -->
-      <article class="card">
-        <div class="card__media"></div>
-        <div class="card__meta">
-          <div class="card__client">
-            <div class="card__mark"></div>
-            <p class="card__name">Project 02</p>
-          </div>
-          <div class="card__details">
-            <p class="card__head"><span class="card__title">Project type</span><span class="card__year">Year</span></p>
-            <p class="card__summary">Project summary goes here — two lines of copy at this measure, matching the rhythm of the card above.</p>
+            <div class="card__head">
+              <h3 class="card__title">Website Redesign</h3>
+              <p class="card__tags"><span>2024-2025</span><span aria-hidden="true">|</span><span class="card__taglist"><span>UX/UI</span><span>BRAND-TO-UI</span><span>WEB</span></span></p>
+            </div>
+            <p class="card__summary">Redesigned Sunollo’s website to embody their updated brand identity, while simplifying product discovery to drive lead generation.</p>
           </div>
         </div>
       </article>
 
       <article class="card">
-        <div class="card__media"></div>
+        <div class="card__media" role="img" aria-label="Consumer App preview"></div>
         <div class="card__meta">
           <div class="card__client">
-            <div class="card__mark"></div>
-            <p class="card__name">Project 03</p>
+            <span class="card__mark"><img src="assets/logo-sunollo.webp" alt="Sunollo"></span>
+            <p class="card__name">Sunollo</p>
           </div>
           <div class="card__details">
-            <p class="card__head"><span class="card__title">Project type</span><span class="card__year">Year</span></p>
-            <p class="card__summary">Project summary goes here — two lines of copy at this measure, matching the rhythm of the card above.</p>
+            <div class="card__head">
+              <h3 class="card__title">Consumer App</h3>
+              <p class="card__tags"><span>2024-2025</span><span aria-hidden="true">|</span><span class="card__taglist"><span>UX/UI</span><span>PRODUCT DESIGN</span><span>MOBILE</span></span></p>
+            </div>
+            <p class="card__summary">Designed an in-house customer app from the ground up for Sunollo’s residential solar customers.</p>
           </div>
         </div>
       </article>
 
       <article class="card">
-        <div class="card__media"></div>
+        <div class="card__media" role="img" aria-label="Singpass Verification for Listings preview"></div>
         <div class="card__meta">
           <div class="card__client">
-            <div class="card__mark"></div>
-            <p class="card__name">Project 04</p>
+            <span class="card__mark"><img src="assets/logo-ohmyhome.webp" alt="Ohmyhome"></span>
+            <p class="card__name">Ohmyhome</p>
           </div>
           <div class="card__details">
-            <p class="card__head"><span class="card__title">Project type</span><span class="card__year">Year</span></p>
-            <p class="card__summary">Project summary goes here — two lines of copy at this measure, matching the rhythm of the card above.</p>
+            <div class="card__head">
+              <h3 class="card__title">Singpass Verification for Listings</h3>
+              <p class="card__tags"><span>2022-2023</span><span aria-hidden="true">|</span><span class="card__taglist"><span>UX/UI</span><span>TEAM COLLABORATION</span><span>WEB</span></span></p>
+            </div>
+            <p class="card__summary">Collaborated with the Ohmyhome design team on multiple design initiatives to implement Singpass verification for property listings.</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="card__media" role="img" aria-label="Project Pages Redesign preview"></div>
+        <div class="card__meta">
+          <div class="card__client">
+            <span class="card__mark"><img src="assets/logo-ohmyhome.webp" alt="Ohmyhome"></span>
+            <p class="card__name">Ohmyhome</p>
+          </div>
+          <div class="card__details">
+            <div class="card__head">
+              <h3 class="card__title">Project Pages Redesign</h3>
+              <p class="card__tags"><span>2021</span><span aria-hidden="true">|</span><span class="card__taglist"><span>UX/UI</span><span>CROSS-MARKET</span><span>WEB</span><span>iOS</span><span>ANDROID</span></span></p>
+            </div>
+            <p class="card__summary">Redesigned Ohmyhome’s project pages across Singapore, Philippines, and Malaysia markets, taking ownership of the iOS and Android designs.</p>
           </div>
         </div>
       </article>
@@ -953,7 +989,7 @@ html { scroll-behavior: smooth; }
   <p class="eyebrow" aria-hidden="true">
     <span class="eyebrow__labels">
       <span class="eyebrow__label eyebrow__label--work">Work</span>
-      <span class="eyebrow__label eyebrow__label--about">About me</span>
+      <span class="eyebrow__label eyebrow__label--about">About</span>
       <span class="eyebrow__label eyebrow__label--extras">Extras</span>
       <span class="eyebrow__label eyebrow__label--contact">Contact</span>
     </span>
