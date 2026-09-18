@@ -531,8 +531,10 @@ a.nav__item { text-decoration: none; }
   margin-top: 23px;
 }
 
-/* Company hugs its own content and the writeup starts on column 9, so the
-   space between them falls out of the grid rather than being set. */
+/* The company block hugs its own content — only the logo inside it is a fixed
+   size — and the writeup is pinned to its column, so the space between them
+   falls out of the grid rather than being set. That is what keeps Ohmyhome's
+   longer name from pushing its writeup off the column Sunollo's sits on. */
 .card__client {
   grid-column: 1 / span 4;
   justify-self: start;
@@ -540,10 +542,7 @@ a.nav__item { text-decoration: none; }
   flex-direction: column;
   align-items: center;
   gap: 8px;
-  /* 58px is the block's designed width, which centres the 40px logo at x=9.
-     Hugging past it keeps longer company names on one line. */
   width: max-content;
-  min-width: 58px;
 }
 
 .card__details {
@@ -912,8 +911,44 @@ a[href]:focus-visible {
     --t-column: calc((100% - (var(--margin) * 2) - var(--t-gutter)) / 2);
   }
 
-  /* Same travel as desktop, just starting lower. */
-  .logo { --header-top: 40px; }
+  /* There is no bio in the rail at this width, so the logo has nothing to
+     clear: it goes from the top-left corner straight to a full-bleed band at
+     the foot, gliding diagonally on the same scroll value as everything else.
+     The band's foot is 24px up and it stands 30px tall, which leaves the nav
+     its own 60px footing just above. */
+  .logo {
+    --header-top: 40px;
+    --logo-band: 30px;
+    --logo-band-foot: 24px;
+    left: calc(var(--margin) + (var(--p) * (50% - var(--margin))));
+    transform: translateX(calc(var(--p) * -50%));
+    top: calc(
+      var(--header-top)
+      + (var(--p) * (var(--vh) - var(--logo-band-foot) - var(--logo-band)
+                     + ((var(--logo-band) - var(--logo-lead)) / 2)
+                     - var(--header-top)))
+    );
+  }
+
+  /* The band itself. It is centred on the logo, which is still travelling while
+     the band fades in, so it is cut twice the viewport wide — at 100vw it comes
+     up short on one side for the whole of the move. It rides --in rather than
+     --p so it arrives after the hero content has cleared out, and it is painted
+     behind the wordmark but inside the logo's own stacking context, so project
+     cards pass underneath the pair. Being inside a fixed element, its width
+     never reaches the document's scroll. */
+  .logo::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: calc((var(--logo-lead) - var(--logo-band)) / 2);
+    width: 200vw;
+    height: var(--logo-band);
+    transform: translateX(-50%);
+    background: var(--ground);
+    opacity: var(--in);
+    z-index: -1;
+  }
 
   /* Absent from the hero; arrives with Work and stays on its 60px footing. */
   .nav {
@@ -990,6 +1025,59 @@ a[href]:focus-visible {
     left: auto;
     right: var(--margin);
     font-size: 12px;
+  }
+
+  /* ---- Work ------------------------------------------------------
+     No rail at this width, so the card takes the whole measure. */
+  .work__cards {
+    margin-left: var(--margin);
+    margin-right: var(--margin);
+    width: auto;
+    max-width: none;
+    padding-top: 101px;
+    /* Clears the fixed nav (60 + its own height) and the logo band below it. */
+    padding-bottom: 140px;
+  }
+
+  /* One project per screen stops meaning anything once the card is only as
+     tall as its content, so the rhythm is a plain 120px between cards. */
+  .card {
+    min-height: 0;
+    padding-top: 0;
+    margin-bottom: 120px;
+  }
+
+  .card:last-child { margin-bottom: 0; }
+
+  /* The card's own grid goes from eight columns at 16 to twelve at 12 — the
+     company still holds 1-4 and the writeup still starts on column 5, which
+     is the column the frames draw it on at both 810 and 391. */
+  .card__meta {
+    grid-template-columns: repeat(12, 1fr);
+    gap: var(--t-gutter);
+  }
+
+  .card__details { grid-column: 5 / span 8; }
+
+  .card__mark {
+    width: 24px;
+    height: 24px;
+  }
+
+  .card__name {
+    font-size: 12px;
+    letter-spacing: -0.24px;
+  }
+
+  .card__title {
+    font-size: 14px;
+    letter-spacing: -0.28px;
+  }
+
+  /* The three-line minimum is set in em, so it follows the size down. */
+  .card__summary {
+    font-size: 12px;
+    letter-spacing: -0.24px;
   }
 }
 
