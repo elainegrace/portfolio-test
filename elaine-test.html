@@ -38,6 +38,18 @@
   font-display: swap;
 }
 
+/* Schoolbell is a single upright face — no italic, no other weights — so
+   every place that used Newsreader italic is now set upright at 400. The
+   Newsreader faces above are kept declared but unreferenced, so nothing
+   fetches them and reverting is a one-word change. */
+@font-face {
+  font-family: "Schoolbell";
+  src: url("fonts/Schoolbell.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* ================================================================== *
  * Tokens
  * ================================================================== */
@@ -92,7 +104,7 @@
   --eyebrow-top: 40px;
 
   /* Elaine Bio: 464px in the hero (one column of the 3-col guide) at 28px
-     Switzer / 30px Newsreader, down to 330px at 20px for both in Work.
+     Switzer / 30px Schoolbell, down to 330px at 20px for both in Work.
      Leading follows the larger of the two, as the frame does. */
   --bio-top-hero: 200px;
   --bio-width: calc(464px - (var(--p) * 134px));
@@ -172,9 +184,8 @@ body {
   );
   z-index: var(--z-rail);
   margin: 0;
-  font-family: "Newsreader", Georgia, serif;
-  font-style: italic;
-  font-weight: 500;
+  font-family: "Schoolbell", "Comic Sans MS", cursive;
+  font-weight: 400;
   font-size: var(--logo-size);
   line-height: 1.3;
   letter-spacing: -0.28px;
@@ -231,14 +242,15 @@ body {
   text-indent: var(--bio-indent);
 }
 
-/* Newsreader's vertical metrics differ from Switzer's, so a shared line-height
+/* Schoolbell's vertical metrics differ from Switzer's — its natural line box
+   is 1.39em against Switzer's — so a shared line-height
    would union into a taller line box. Zeroing the inline leading lets the
    block's strut alone set it — and the strut follows the larger of the two
    sizes, which is how the frame spaces its mixed lines. */
 .bio em {
-  font-family: "Newsreader", Georgia, serif;
-  font-weight: 500;
-  font-style: italic;
+  font-family: "Schoolbell", "Comic Sans MS", cursive;
+  font-weight: 400;
+  font-style: normal;
   font-size: var(--bio-size-serif);
   line-height: 0;
   color: var(--ink);
@@ -788,8 +800,7 @@ a.nav__item { text-decoration: none; }
 .contact__email {
   display: block;
   margin: 0;
-  font-family: "Newsreader", Georgia, serif;
-  font-style: italic;
+  font-family: "Schoolbell", "Comic Sans MS", cursive;
   font-weight: 400;
   font-size: 40px;
   line-height: 1.3;
@@ -816,8 +827,7 @@ a.nav__item { text-decoration: none; }
 /* Fixed 90px label so the arrows line up across the three links. */
 .contact__link span {
   width: 90px;
-  font-family: "Newsreader", Georgia, serif;
-  font-style: italic;
+  font-family: "Schoolbell", "Comic Sans MS", cursive;
   font-weight: 400;
   font-size: 28px;
   line-height: 1;
@@ -1233,7 +1243,7 @@ html { scroll-behavior: smooth; }
   measure();
   window.addEventListener("scroll", onScroll, { passive: true });
   window.addEventListener("resize", measure);
-  // Switzer and Newsreader change the section offsets when they swap in.
+  // Switzer and Schoolbell change the section offsets when they swap in.
   if (document.fonts && document.fonts.ready) {
     document.fonts.ready.then(measure);
   }
