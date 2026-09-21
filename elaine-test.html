@@ -750,7 +750,10 @@ a.nav__item { text-decoration: none; }
   position: relative;
   z-index: var(--z-content);
   min-height: var(--vh);
-  padding-top: 167.5px;
+  /* 150 below the heading's foot. The foot carries the heading's own size, so
+     this one declaration lands on 210.8 here and the 208 the tablet frames
+     draw, without a breakpoint of its own. */
+  padding-top: calc(var(--eyebrow-foot) + 150px);
   padding-bottom: 161px;
 }
 
@@ -1158,6 +1161,28 @@ a[href]:focus-visible {
     width: var(--t-column);
     max-width: none;
   }
+
+  /* ---- Extras ----------------------------------------------------
+     The blurb keeps the 12-column guide it sits on at desktop and moves
+     from column 9 to column 5, taking two thirds of the measure instead
+     of a third. The guide's own tokens already resolve against the 12px
+     margin here, so this is the same expression with a different column.
+
+     The carousel stays full bleed and keeps its travel; only the tiles
+     resize, to the 179 x 207 the frames give them — the same ratio the
+     desktop tiles have, so nothing distorts. */
+  .extras__intro {
+    left: calc(var(--margin) + (var(--pitch) * 4));
+    width: calc((var(--column) * 8) + (var(--gutter) * 7));
+  }
+
+  .extras__tile {
+    width: 179px;
+    aspect-ratio: 179 / 207;
+  }
+
+  /* Provisional: enough to clear the nav's 102, pending your pass. */
+  .extras { padding-bottom: 148px; }
 }
 
 html { scroll-behavior: smooth; }
