@@ -111,7 +111,14 @@
   --nav-pad-y: 12px;
   --nav-height: calc((var(--nav-pad-y) * 2) + (var(--nav-size) * 1.3));
   --footer-offset: 60px;   /* everything bottom-pinned sits 60px up */
+
+  /* Section spacing is given from the heading's foot, not its top, so the
+     heading's own height is part of the measure and a change of size at a
+     breakpoint carries the content below it. */
   --eyebrow-top: 40px;
+  --eyebrow-size: 16px;
+  --eyebrow-lead: calc(var(--eyebrow-size) * 1.3);
+  --eyebrow-foot: calc(var(--eyebrow-top) + var(--eyebrow-lead));
 
   /* Elaine Bio: 464px at top 200px in the hero, down to three columns of the
      Work guide, 60px off the bottom. The hero measure is flat — the frames
@@ -513,9 +520,9 @@ a.nav__item { text-decoration: none; }
   grid-area: 1 / 1;
   opacity: var(--w);
   font-weight: 400;
-  font-size: 16px;
+  font-size: var(--eyebrow-size);
   line-height: 1.3;
-  letter-spacing: -0.32px;
+  letter-spacing: calc(var(--eyebrow-size) * -0.02);
   color: var(--ink);
   text-transform: uppercase;
   white-space: nowrap;
@@ -677,7 +684,7 @@ a.nav__item { text-decoration: none; }
   position: relative;
   z-index: var(--z-content);
   min-height: var(--vh);
-  padding-top: 116px;
+  padding-top: calc(var(--eyebrow-foot) + 150px);
   padding-bottom: 161px;
 }
 
@@ -952,10 +959,11 @@ a[href]:focus-visible {
      rather than travels does so on --hand, which steps across the window where
      the hero has gone and Work has not arrived, so none of it is on screen.
 
-     Its Work foot is 8, with the nav on 64 above it. */
+     The mark is the same drawing at 0.674 — both axes land exactly on the
+     70.7 x 29.7 the frames give it — and it sits 16 off the foot, with the
+     nav 16 above its head. */
   .logo {
     --header-top: 40px;
-    --logo-foot: 8px;
     left: calc(var(--margin) + (var(--hand) * (50% - var(--margin))));
     top: calc(
       var(--header-top)
@@ -976,10 +984,10 @@ a[href]:focus-visible {
   }
 
   /* Absent from the hero; rises from under the edge with the logo and settles
-     on 64, clearing the mark that sits on 8 below it. Its own height plus that
-     footing is exactly the distance to the edge, so it starts fully off. */
+     16 above its head — so its footing is read off the mark below it rather
+     than written down. Its own height plus that footing is exactly the
+     distance to the edge, so it starts fully off screen. */
   .nav {
-    --nav-foot: 64px;
     top: auto;
     bottom: var(--nav-foot);
     opacity: var(--in);
@@ -1058,9 +1066,23 @@ a[href]:focus-visible {
     font-size: 12px;
   }
 
-  .eyebrow__label {
-    font-size: 14px;
-    letter-spacing: -0.28px;
+  :root {
+    /* Drives the heading's foot, and with it every section's top spacing. */
+    --eyebrow-size: 14px;
+
+    /* The mark is the same drawing at 0.674 — both axes land exactly on the
+       70.7 x 29.7 the frames give it. It sits 16 off the foot with the nav 16
+       above its head, so the nav's footing is read off the mark rather than
+       written down. These live here rather than on .logo because .nav has to
+       see them too, and a custom property only reaches its own subtree. */
+    --logo-scale: 0.674;
+    --logo-w: calc(104.9px * var(--logo-scale));
+    --logo-h: calc(44.04px * var(--logo-scale));
+    --logo-mark-w: calc(107px * var(--logo-scale));
+    --logo-mark-h: calc(47px * var(--logo-scale));
+    --logo-foot: 16px;
+    --nav-logo-gap: 16px;
+    --nav-foot: calc(var(--logo-foot) + var(--logo-h) + var(--nav-logo-gap));
   }
 
   /* ---- Work ------------------------------------------------------
@@ -1070,7 +1092,7 @@ a[href]:focus-visible {
     margin-right: var(--margin);
     width: auto;
     max-width: none;
-    padding-top: 101px;
+    padding-top: calc(var(--eyebrow-foot) + 80px);
     /* Clears the fixed nav (60 + its own height) and the logo band below it. */
     padding-bottom: 140px;
   }
@@ -1114,6 +1136,21 @@ a[href]:focus-visible {
   .card__summary {
     font-size: 12px;
     letter-spacing: -0.24px;
+  }
+
+  /* ---- About -----------------------------------------------------
+     The bio drops onto column 2 and wraps to it; its type is unchanged.
+     200 below the heading's foot rather than the 150 desktop gets, and
+     enough room underneath for the nav and the mark to pass in front. */
+  .about {
+    padding-top: calc(var(--eyebrow-foot) + 200px);
+    padding-bottom: 141px;
+  }
+
+  .about__content {
+    margin-left: calc(var(--margin) + var(--t-column) + var(--t-gutter));
+    width: var(--t-column);
+    max-width: none;
   }
 }
 
