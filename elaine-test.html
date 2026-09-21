@@ -125,6 +125,20 @@
   --eyebrow-lead: calc(var(--eyebrow-size) * 1.3);
   --eyebrow-foot: calc(var(--eyebrow-top) + var(--eyebrow-lead));
 
+  /* Contact: the photo and the details both hang this far below the heading's
+     foot, and the block's type steps down with the breakpoint. */
+  --contact-drop: 200px;
+  --contact-email-size: 24px;
+  --contact-link-size: 20px;
+  --contact-link-w: 70px;
+  --contact-link-gap: 16px;
+  --contact-arrow: 24px;
+  --contact-foot: 40px;
+
+  /* 1 when the centred nav would sit over the section heading, so it drops
+     below it instead. Written by the scroll handler, which knows both widths. */
+  --nav-drop: 0;
+
   /* Elaine Bio: 464px at top 200px in the hero, down to three columns of the
      Work guide, 60px off the bottom. The hero measure is flat — the frames
      draw 464 at 811 as at 1440 — while the Work measure is fluid, so the copy
@@ -825,8 +839,7 @@ a.nav__item { text-decoration: none; }
 .contact__portrait {
   position: absolute;
   left: var(--margin);
-  top: 50%;
-  transform: translateY(-50%);
+  top: calc(var(--eyebrow-foot) + var(--contact-drop));
   width: 150px;
   height: 150px;
   margin: 0;
@@ -846,16 +859,16 @@ a.nav__item { text-decoration: none; }
 .contact__details {
   position: absolute;
   left: var(--h-column-3);
-  top: 50%;
-  transform: translateY(-50%);
-  width: 436px;
+  top: calc(var(--eyebrow-foot) + var(--contact-drop));
+  width: 248px;
   max-width: calc(100% - var(--h-column-3) - var(--margin));
 }
 
 .contact__labels {
   display: flex;
-  justify-content: space-between;
-  margin: 0 0 36px;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0 0 39.5px;
   font-weight: 500;
   font-size: 14px;
   line-height: 1.3;
@@ -869,19 +882,23 @@ a.nav__item { text-decoration: none; }
   margin: 0;
   font-family: "Schoolbell", "Comic Sans MS", cursive;
   font-weight: 400;
-  font-size: 40px;
+  font-size: var(--contact-email-size);
   line-height: 1.3;
-  letter-spacing: -0.8px;
+  letter-spacing: calc(var(--contact-email-size) * -0.02);
   color: var(--ink);
   text-decoration: none;
   white-space: nowrap;
 }
 
+/* A column now, not a row — which is also what stopped Contact pushing the
+   page sideways between 811 and 1314, where the old 40px email and 422px row
+   of links could not fit the third of the measure this block gets. */
 .contact__links {
   display: flex;
-  align-items: center;
-  gap: 40px;
-  margin: 7px 0 0;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--contact-link-gap);
+  margin: 16px 0 0;
 }
 
 .contact__link {
@@ -892,18 +909,19 @@ a.nav__item { text-decoration: none; }
 }
 
 /* Fixed 90px label so the arrows line up across the three links. */
+/* A fixed label width so the arrows line up down the column. */
 .contact__link span {
-  width: 90px;
+  width: var(--contact-link-w);
   font-family: "Schoolbell", "Comic Sans MS", cursive;
   font-weight: 400;
-  font-size: 28px;
+  font-size: var(--contact-link-size);
   line-height: 1;
-  letter-spacing: -0.56px;
+  letter-spacing: calc(var(--contact-link-size) * -0.02);
 }
 
 .contact__link svg {
-  width: 24px;
-  height: 24px;
+  width: var(--contact-arrow);
+  height: var(--contact-arrow);
   flex: 0 0 auto;
 }
 
@@ -912,7 +930,7 @@ a.nav__item { text-decoration: none; }
 .contact__copyright,
 .contact__clock {
   position: fixed;
-  bottom: 40px;
+  bottom: var(--contact-foot);
   z-index: var(--z-rail);
   opacity: var(--t);
 }
@@ -996,8 +1014,20 @@ a[href]:focus-visible {
      than written down. Its own height plus that footing is exactly the
      distance to the edge, so it starts fully off screen. */
   .nav {
+    /* 40 off the top in Contact — or below the heading, when the two would not
+       fit side by side. Which of those is in force comes from --nav-drop, read
+       off the measured widths rather than a breakpoint, so it follows the text
+       if either ever changes. */
+    --nav-contact-top: calc(
+      var(--eyebrow-top)
+      + (var(--nav-drop) * (var(--eyebrow-lead) + 16px))
+    );
     top: auto;
-    bottom: var(--nav-foot);
+    bottom: calc(
+      var(--nav-foot)
+      + (var(--t) * (var(--vh) - var(--nav-contact-top) - var(--nav-height)
+                     - var(--nav-foot)))
+    );
     opacity: var(--in);
     transform:
       translateX(-50%)
@@ -1183,6 +1213,46 @@ a[href]:focus-visible {
 
   /* Provisional: enough to clear the nav's 102, pending your pass. */
   .extras { padding-bottom: 148px; }
+
+  /* ---- Contact ---------------------------------------------------
+     Same block, a size down: the photo and details hang 250 below the
+     heading's foot instead of 200, the details take column 2, and the
+     footer line sits on 60 rather than 40. */
+  :root {
+    --contact-drop: 250px;
+    --contact-email-size: 17px;
+    --contact-link-size: 14px;
+    --contact-link-w: 50px;
+    --contact-link-gap: 8px;
+    --contact-arrow: 16px;
+    --contact-foot: 60px;
+  }
+
+  .contact__details {
+    left: calc(var(--margin) + var(--t-column) + var(--t-gutter));
+    width: 168px;
+    max-width: none;
+  }
+
+  .contact__copyright,
+  .contact__clock {
+    font-size: 12px;
+    letter-spacing: -0.24px;
+  }
+
+  /* Held to column 1 and allowed to wrap, so it can never reach the clock in
+     column 2 — at 810 that still leaves it on its two authored lines, and at
+     391 the second one breaks, which is the shape the frame draws. */
+  .contact__copyright {
+    width: var(--t-column);
+    white-space: pre-wrap;
+  }
+
+  /* Right-anchored here rather than sitting on the hero's third section. */
+  .contact__clock {
+    left: auto;
+    right: var(--margin);
+  }
 }
 
 html { scroll-behavior: smooth; }
@@ -1480,6 +1550,8 @@ html { scroll-behavior: smooth; }
   var contact = document.querySelector(".contact");
   var bio = document.querySelector(".bio");
   var bioTitle = document.querySelector(".bio__title");
+  var nav = document.querySelector(".nav");
+  var eyebrow = document.querySelector(".eyebrow");
   var heroHeight = 1;
   var aboutTop = 0;
   var extrasTop = 0;
@@ -1505,7 +1577,20 @@ html { scroll-behavior: smooth; }
     extrasTop = extras.offsetTop;
     contactTop = contact.offsetTop;
     measureBio();
+    measureNav();
     apply();
+  }
+
+  // In Contact the nav comes up to the top of the viewport, where the section
+  // heading already is. Whether the two fit side by side depends on how wide
+  // the heading's word and the nav's four are — so it is measured rather than
+  // pinned to a breakpoint, and the nav drops below the heading when they
+  // would collide. The 16 is the clearance between them.
+  function measureNav() {
+    if (!nav || !eyebrow) return;
+    var clear = eyebrow.getBoundingClientRect().right + 16;
+    var navLeft = (document.documentElement.clientWidth - nav.offsetWidth) / 2;
+    root.style.setProperty("--nav-drop", navLeft < clear ? "1" : "0");
   }
 
   // How tall the bio ends up at its Work size, and how far the first line has
