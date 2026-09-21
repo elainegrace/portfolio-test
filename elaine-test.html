@@ -98,11 +98,16 @@
 
   /* The nav anchors by its foot, so its height is derived from its own type
      rather than written down. Changing a size at a breakpoint moves it too. */
-  /* The logo is a drawn mark. It is drawn 104.9 x 44 and exports 107 x 47 —
-     the extra pixel each side is its own 2px stroke straddling the path. The
-     element is the drawn shape, so every position it is given is the position
-     the frames give; the file just bleeds past it. */
+  /* The logo is a drawn mark, cut at two sizes — large here, small at tablet
+     and below — each with its stroke drawn at 2px for that size rather than
+     one file scaled, which would thin the line as it shrank.
+
+     Each file is its own viewBox with the shape inset a pixel for the stroke
+     to straddle: 107 x 47 around a 104.9 x 44 drawing here. The element is the
+     drawn shape, so every position it is given is the position the frames
+     give, and the file bleeds past it. */
   --logo-size: 14px;
+  --logo-mark: url("assets/Elaine-logo-large.svg");
   --logo-w: 104.9px;
   --logo-h: 44.04px;
   --logo-mark-w: 107px;
@@ -243,7 +248,7 @@ body {
   width: var(--logo-mark-w);
   height: var(--logo-mark-h);
   transform: translate(-50%, -50%);
-  background: url("assets/logo-mark.svg") center / 100% 100% no-repeat;
+  background: var(--logo-mark) center / 100% 100% no-repeat;
   z-index: -1;
 }
 
@@ -1070,16 +1075,17 @@ a[href]:focus-visible {
     /* Drives the heading's foot, and with it every section's top spacing. */
     --eyebrow-size: 14px;
 
-    /* The mark is the same drawing at 0.674 — both axes land exactly on the
-       70.7 x 29.7 the frames give it. It sits 16 off the foot with the nav 16
-       above its head, so the nav's footing is read off the mark rather than
-       written down. These live here rather than on .logo because .nav has to
-       see them too, and a custom property only reaches its own subtree. */
-    --logo-scale: 0.674;
-    --logo-w: calc(104.9px * var(--logo-scale));
-    --logo-h: calc(44.04px * var(--logo-scale));
-    --logo-mark-w: calc(107px * var(--logo-scale));
-    --logo-mark-h: calc(47px * var(--logo-scale));
+    /* The small cut: 73 x 32 around a 70.7 x 29.7 drawing, which is what the
+       frames give it, with its stroke drawn at 2px for this size. It sits 16
+       off the foot with the nav 16 above its head, so the nav's footing is
+       read off the mark rather than written down. These live here rather than
+       on .logo because .nav has to see them too, and a custom property only
+       reaches its own subtree. */
+    --logo-mark: url("assets/Elaine-logo-small.svg");
+    --logo-w: 70.71px;
+    --logo-h: 29.69px;
+    --logo-mark-w: 73px;
+    --logo-mark-h: 32px;
     --logo-foot: 16px;
     --nav-logo-gap: 16px;
     --nav-foot: calc(var(--logo-foot) + var(--logo-h) + var(--nav-logo-gap));
