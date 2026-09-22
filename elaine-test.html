@@ -1096,10 +1096,12 @@ a[href]:focus-visible {
 @media (max-width: 810px) {
   :root {
     --margin: 12px;
-    /* No runway here. The bio does not travel at this width — it is ordinary
-       hero content that scrolls away — so a pinned stage would hold the
-       portrait still while the bio left without it. */
-    --hero-scroll: 1;
+    /* A runway here too. The bio does not travel at this width, but the
+       heading, the logo and the nav all hand over, and with no runway the
+       stage never pins — so the heading arrived over a hero still at full
+       strength, for 400px of scrolling. The bio is pinned with the rest of
+       the hero below, which is what lets the whole of it fade as one. */
+    --hero-scroll: 1.5;
 
     /* The 12-column guide — what Extras' blurb and the card's own columns sit
        on — takes an 8px gutter here rather than the 16 it has on desktop. The
@@ -1165,10 +1167,17 @@ a[href]:focus-visible {
       translateY(calc((1 - var(--in)) * (var(--nav-foot) + var(--nav-height))));
   }
 
-  /* Ordinary hero content: placed against the document, so it scrolls away
-     with the section rather than being pinned like the desktop rail. */
+  /* Hero content, not rail: it does not travel to a Work position, it fades
+     where it stands like the portrait and the status list beside it.
+
+     Fixed rather than absolute, though. It is a sibling of .hero in the
+     markup, so absolute anchored it to the document, and the moment the stage
+     pins it would have slid away while the portrait it sits beside held
+     still — the hero coming apart mid-scroll. Fixed at the same 300, it holds
+     with them. Same place, same size; only what it is anchored to changes,
+     and the percentages resolve against the viewport either way. */
   .bio {
-    position: absolute;
+    position: fixed;
     top: 300px;
     left: var(--margin);
     width: var(--t-column);
@@ -1180,8 +1189,8 @@ a[href]:focus-visible {
     font-size: 18px;
     line-height: 1.3;
     letter-spacing: -0.18px;   /* -1%, as the bio tracks at every size */
-    opacity: 1;
-    transform: none;
+    opacity: var(--out);
+    transform: translateY(calc((1 - var(--out)) * 8px));
   }
 
   /* The label takes its own line, so the indent that cleared it goes away. */
@@ -1197,12 +1206,6 @@ a[href]:focus-visible {
 
   /* No morph here, so the Work-only breaks never come into force. */
   .bio.is-work .bio__brk { display: none; }
-
-  /* Nothing is handing over, so nothing needs to fade out. */
-  .hero__transient {
-    opacity: 1;
-    transform: none;
-  }
 
   .hero__portrait {
     left: auto;
@@ -1265,15 +1268,13 @@ a[href]:focus-visible {
     margin-right: var(--margin);
     width: auto;
     max-width: none;
-    padding-top: calc(var(--eyebrow-foot) + 80px);
+    /* The designed 80 below the heading's foot, with the same lead desktop
+       gets above it, so the heading, logo and nav all land and hold before
+       the first cover rises into view. */
+    padding-top: calc((var(--vh) * var(--work-lead)) + var(--eyebrow-foot) + 80px);
     /* Clears the fixed nav (60 + its own height) and the logo band below it. */
     padding-bottom: 140px;
   }
-
-  /* No lead between sections here: these are laid out to their frames, and
-     the handler falls back to its old measure where there is no gap for a
-     changeover to sit in. */
-  .work { padding-bottom: 0; }
 
   /* One project per screen stops meaning anything once the card is only as
      tall as its content, so the rhythm is a plain 120px between cards. */
@@ -1322,7 +1323,7 @@ a[href]:focus-visible {
      enough room underneath for the nav and the mark to pass in front. */
   .about {
     padding-top: calc(var(--eyebrow-foot) + 200px);
-    padding-bottom: 141px;
+    padding-bottom: calc(141px + (var(--vh) * var(--section-lead)));
   }
 
   .about__content {
@@ -1345,18 +1346,6 @@ a[href]:focus-visible {
     width: calc((var(--column) * 8) + (var(--gutter) * 7));
   }
 
-  /* Back in the flow at this width, and none of the fixed treatment applies.
-     There is no section lead here, so the blurb crosses the heading's line at
-     the very scroll where the changeover completes — it has nothing to catch
-     up to. Fixing it would buy nothing and put the carousel behind it. */
-  .extras__intro {
-    position: absolute;
-    z-index: auto;
-    opacity: 1;
-    transform: none;
-    pointer-events: auto;
-  }
-
   /* The space between tiles is the carousel's own, not the grid's — it is 8
      here against 16 on desktop, which happens to match this breakpoint's
      gutter but is stated rather than inherited, so a change to the guide
@@ -1368,7 +1357,7 @@ a[href]:focus-visible {
   }
 
   /* Provisional: enough to clear the nav's 102, pending your pass. */
-  .extras { padding-bottom: 148px; }
+  .extras { padding-bottom: calc(148px + (var(--vh) * var(--section-lead))); }
 
   /* ---- Contact ---------------------------------------------------
      Same block, a size down: the photo and details hang 250 below the
@@ -1595,7 +1584,9 @@ a[href]:focus-visible {
   color: var(--ink-strong);
 }
 
-@media (max-width: 810px) { .bench { display: none; } }
+/* Shown at tablet too now that the handover runs there. Below 391 there is
+   no room for it beside the page. */
+@media (max-width: 390px) { .bench { display: none; } }
 
 html { scroll-behavior: smooth; }
 
@@ -1780,6 +1771,7 @@ html { scroll-behavior: smooth; }
     <p class="bench__row"><span>curve</span><button type="button" data-ease="cubic">cubic</button><button type="button" data-ease="sine" class="is-on">sine</button></p>
     <p class="bench__row"><span>runway</span><button type="button" data-runway="1">1</button><button type="button" data-runway="1.5" class="is-on">1.5</button><button type="button" data-runway="2">2</button><button type="button" data-runway="2.5">2.5</button><button type="button" data-runway="3">3</button></p>
     <p class="bench__row"><span>rail</span><button type="button" data-rail="travel">travel</button><button type="button" data-rail="fade" class="is-on">fade</button></p>
+    <p class="bench__row"><span>gaps</span><button type="button" data-gaps="0">off</button><button type="button" data-gaps="1" class="is-on">on</button></p>
   </aside>
 
   <nav class="nav" aria-label="Primary">
@@ -2140,6 +2132,9 @@ html { scroll-behavior: smooth; }
       if (button.dataset.ease) {
         ease = EASINGS[button.dataset.ease];
         apply();
+      } else if (button.dataset.gaps) {
+        root.style.setProperty("--section-lead", button.dataset.gaps);
+        measure();
       } else if (button.dataset.rail) {
         railMode = button.dataset.rail;
         var fading = railMode === "fade";
