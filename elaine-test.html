@@ -976,6 +976,10 @@ a[href]:focus-visible {
 @media (max-width: 810px) {
   :root {
     --margin: 12px;
+    /* The 12-column guide — what Extras' blurb and the card's own columns sit
+       on — takes an 8px gutter here rather than the 16 it has on desktop. The
+       two-column guide below is a separate thing and keeps its 12. */
+    --gutter: 8px;
     --t-gutter: 12px;
     --t-column: calc((100% - (var(--margin) * 2) - var(--t-gutter)) / 2);
   }
@@ -1156,7 +1160,7 @@ a[href]:focus-visible {
      is the column the frames draw it on at both 810 and 391. */
   .card__meta {
     grid-template-columns: repeat(12, 1fr);
-    gap: var(--t-gutter);
+    gap: var(--gutter);
   }
 
   .card__details { grid-column: 5 / span 8; }
@@ -1211,9 +1215,13 @@ a[href]:focus-visible {
     width: calc((var(--column) * 8) + (var(--gutter) * 7));
   }
 
+  /* The space between tiles is the carousel's own, not the grid's — the frames
+     draw it at 16 either way, so it is pinned rather than left to follow the
+     guide down to 8. */
   .extras__tile {
     width: 179px;
     aspect-ratio: 179 / 207;
+    margin-right: 16px;
   }
 
   /* Provisional: enough to clear the nav's 102, pending your pass. */
