@@ -1443,6 +1443,52 @@ a[href]:focus-visible {
   }
 }
 
+/* TEMPORARY — the bench. Remove with its markup and its handler. */
+.bench {
+  position: fixed;
+  top: 20px;
+  right: var(--margin);
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 10px;
+  background: var(--nav-surface);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  font-size: 11px;
+  letter-spacing: -0.11px;
+  color: var(--muted);
+}
+
+.bench__row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0;
+}
+
+.bench__row > span {
+  width: 44px;
+  text-transform: uppercase;
+}
+
+.bench button {
+  padding: 2px 6px;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.bench button.is-on {
+  background: var(--ground);
+  color: var(--ink-strong);
+}
+
+@media (max-width: 810px) { .bench { display: none; } }
+
 html { scroll-behavior: smooth; }
 
 /* The transition is scroll position, not autonomous motion, so it stays —
@@ -1619,6 +1665,13 @@ html { scroll-behavior: smooth; }
     <span class="bio__text">I <em>design</em> the logic, the flow, and the structure that makes someone<br class="bio__brk"> open <em>an app</em> or <em>a website</em> and think,<br class="bio__brk"> <em>“This just works.”</em></span>
   </h1>
 
+  <!-- TEMPORARY: a bench for comparing the two smoothing levers. Not part of
+       the design — remove once the curve and the runway are settled. -->
+  <aside class="bench" aria-label="Animation bench">
+    <p class="bench__row"><span>curve</span><button type="button" data-ease="cubic" class="is-on">cubic</button><button type="button" data-ease="sine">sine</button></p>
+    <p class="bench__row"><span>runway</span><button type="button" data-runway="1">1</button><button type="button" data-runway="1.5">1.5</button><button type="button" data-runway="2" class="is-on">2</button><button type="button" data-runway="2.5">2.5</button><button type="button" data-runway="3">3</button></p>
+  </aside>
+
   <nav class="nav" aria-label="Primary">
     <ul class="nav__list">
       <li><a class="nav__item nav__item--work" href="#work">Work</a></li>
@@ -1754,10 +1807,19 @@ html { scroll-behavior: smooth; }
 
   function clamp01(n) { return n < 0 ? 0 : n > 1 ? 1 : n; }
 
-  // Ease the travel so most of the movement lands early, then settles.
-  function easeInOutCubic(t) {
-    return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-  }
+  // Two curves for the travel, both symmetrical, differing in how much of the
+  // motion they pack into the middle. The midpoint slope is what reads as
+  // hurried: cubic runs 3x the average speed there, sine about 1.57x. Which
+  // one is in force is switchable while we decide.
+  var EASINGS = {
+    cubic: function (t) {
+      return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    },
+    sine: function (t) {
+      return -(Math.cos(Math.PI * t) - 1) / 2;
+    }
+  };
+  var ease = EASINGS.cubic;
 
   // Layout-dependent values are read here rather than per frame, so scrolling
   // never forces a reflow.
@@ -1808,7 +1870,7 @@ html { scroll-behavior: smooth; }
     var y = window.scrollY;
 
     var toWork = clamp01(y / heroHeight);
-    var eased = easeInOutCubic(toWork);
+    var eased = ease(toWork);
     root.style.setProperty("--p", eased.toFixed(4));
     // Late enough that the bio is already at its Work measure, so switching
     // the breaks in costs one small reflow rather than a visible jump.
@@ -1825,9 +1887,9 @@ html { scroll-behavior: smooth; }
     var toAbout = clamp01((y - (aboutTop - ramp)) / ramp);
     var toExtras = clamp01((y - (extrasTop - ramp)) / ramp);
     var toContact = clamp01((y - (contactTop - ramp)) / ramp);
-    root.style.setProperty("--q", easeInOutCubic(toAbout).toFixed(4));
-    root.style.setProperty("--r", easeInOutCubic(toExtras).toFixed(4));
-    root.style.setProperty("--t", easeInOutCubic(toContact).toFixed(4));
+    root.style.setProperty("--q", ease(toAbout).toFixed(4));
+    root.style.setProperty("--r", ease(toExtras).toFixed(4));
+    root.style.setProperty("--t", ease(toContact).toFixed(4));
   }
 
   function onScroll() {
@@ -1836,6 +1898,29 @@ html { scroll-behavior: smooth; }
       requestAnimationFrame(apply);
     }
   }
+
+  // TEMPORARY. A bench for feeling the two smoothing levers against each
+  // other — the curve, and how many viewports the hero holds for. It is not
+  // part of the design and comes out once they are settled.
+  (function bench() {
+    var panel = document.querySelector(".bench");
+    if (!panel) return;
+    panel.addEventListener("click", function (event) {
+      var button = event.target.closest("button");
+      if (!button) return;
+      var group = button.parentNode;
+      Array.prototype.forEach.call(group.querySelectorAll("button"), function (b) {
+        b.classList.toggle("is-on", b === button);
+      });
+      if (button.dataset.ease) {
+        ease = EASINGS[button.dataset.ease];
+        apply();
+      } else {
+        root.style.setProperty("--hero-scroll", button.dataset.runway);
+        measure();
+      }
+    });
+  })();
 
   measure();
   window.addEventListener("scroll", onScroll, { passive: true });
