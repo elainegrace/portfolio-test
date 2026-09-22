@@ -833,13 +833,32 @@ a.nav__item { text-decoration: none; }
   padding-bottom: calc(161px + (var(--vh) * var(--section-lead)));
 }
 
-/* Columns 9-12, on the eyebrow's line */
+/* Columns 9-12, on the eyebrow's line — and fixed to it, like the heading it
+   belongs to. In the flow it could only cross that line at one scroll
+   position, which at 1440 x 900 fell 861px after the heading had already
+   locked: the section's own subtitle spent the whole approach a viewport
+   below the word it belongs under. Fixed, it arrives with the heading and
+   leaves with it, on --w-extras — the same weight that drives the EXTRAS
+   label, so the two are never out of step.
+
+   The columns survive the switch untouched. .extras is a full-width block, so
+   the percentages inside --column resolve against the same width whether the
+   box is positioned against the section or the viewport — same left and width
+   to the pixel from 320 through 1920.
+
+   It carries no links, and an invisible strip should not be intercepting the
+   page for the whole of the rest of it, so it takes no pointer events. */
 .extras__intro {
-  position: absolute;
+  position: fixed;
   top: var(--eyebrow-top);
   left: calc(var(--margin) + (var(--pitch) * 8));
   width: calc((var(--column) * 4) + (var(--gutter) * 3));
   max-width: calc(100% - var(--margin) * 2);
+  z-index: var(--z-rail);
+  opacity: var(--w-extras);
+  /* Up into place as it fades, the gesture the eyebrow makes with its 8. */
+  transform: translateY(calc((1 - var(--r)) * 20px));
+  pointer-events: none;
 }
 
 .extras__intro p {
@@ -1536,7 +1555,8 @@ html { scroll-behavior: smooth; }
 @media (prefers-reduced-motion: reduce) {
   .hero__transient,
   .bio,
-  .eyebrow { transform: none; }
+  .eyebrow,
+  .extras__intro { transform: none; }
 
   .extras__track { animation: none; }
 
@@ -1944,7 +1964,10 @@ html { scroll-behavior: smooth; }
       : 0;
 
     toAboutAt = changeover(workFoot, head(".about__content"), about.offsetTop);
-    toExtrasAt = changeover(foot(".about__content"), head(".extras__intro"), extras.offsetTop);
+    // The blurb is fixed to the heading now, so it never rises into view from
+    // the bottom — the carousel is the first Extras content that does, and the
+    // changeover shuts on that instead.
+    toExtrasAt = changeover(foot(".about__content"), head(".extras__carousel"), extras.offsetTop);
     toContactAt = changeover(foot(".extras__carousel"), head(".contact__portrait"), contact.offsetTop);
 
     measureBio();
