@@ -1215,13 +1215,14 @@ a[href]:focus-visible {
     width: calc((var(--column) * 8) + (var(--gutter) * 7));
   }
 
-  /* The space between tiles is the carousel's own, not the grid's — the frames
-     draw it at 16 either way, so it is pinned rather than left to follow the
-     guide down to 8. */
+  /* The space between tiles is the carousel's own, not the grid's — it is 8
+     here against 16 on desktop, which happens to match this breakpoint's
+     gutter but is stated rather than inherited, so a change to the guide
+     cannot move the carousel without being asked. */
   .extras__tile {
     width: 179px;
     aspect-ratio: 179 / 207;
-    margin-right: 16px;
+    margin-right: 8px;
   }
 
   /* Provisional: enough to clear the nav's 102, pending your pass. */
