@@ -81,6 +81,17 @@
   --r: 0;
   --t: 0;
 
+  /* The bio leaves the rail and the logo drops into the slot it vacates, both
+     on --q. Run together they cross: measured at the midpoint, the mark sits
+     over the bio's first two lines by 44px, at full strength against a bio
+     still at 43%. Split into a lead and a trail inside the same window and
+     they cannot meet — the bio is gone before the logo starts down, with a
+     tenth of the window to spare between them — and the changeover still
+     takes exactly as long as it did. The heading and nav weights above stay
+     on the raw --q: those are the section changing over, not the rail. */
+  --q-lead: clamp(0, calc(var(--q) / 0.45), 1);
+  --q-trail: clamp(0, calc((var(--q) - 0.55) / 0.45), 1);
+
   /* The Extras blurb letting go of its heading, 0 -> 1 over the last stretch
      before the carousel's top would reach its foot. It belongs to the heading
      on the way in; the carousel is full bleed and would otherwise slide up
@@ -279,7 +290,7 @@ body {
     var(--header-top)
     + (var(--rail) * (var(--vh) - var(--footer-offset) - var(--bio-work-height)
                       - var(--bio-logo-gap) - var(--logo-h) - var(--header-top)))
-    + (var(--q) * (var(--bio-work-height) + var(--bio-logo-gap)))
+    + (var(--q-trail) * (var(--bio-work-height) + var(--bio-logo-gap)))
   );
   z-index: var(--z-rail);
   margin: 0;
@@ -339,8 +350,8 @@ body {
   color: var(--muted);
   word-break: break-word;
   /* Leaves the rail in About, handing its slot to the logo. */
-  opacity: calc(var(--rail-fade) * (1 - var(--q)));
-  transform: translateY(calc(var(--q) * 12px));
+  opacity: calc(var(--rail-fade) * (1 - var(--q-lead)));
+  transform: translateY(calc(var(--q-lead) * 12px));
 }
 
 /* PRODUCT DESIGNER sits on the bio's first line, which the text is indented
@@ -732,7 +743,7 @@ a.nav__item { text-decoration: none; }
   flex-wrap: wrap;
   align-items: center;
   column-gap: 8px;
-  row-gap: 4px;
+  row-gap: 2px;
   margin: 0;
   font-weight: 400;
   font-size: 12px;
@@ -745,7 +756,7 @@ a.nav__item { text-decoration: none; }
   display: flex;
   flex-wrap: wrap;
   column-gap: 12px;
-  row-gap: 4px;
+  row-gap: 2px;
 }
 
 /* A tag breaks between tags, never inside one. */
@@ -1458,13 +1469,9 @@ a[href]:focus-visible {
   .card__client { grid-column: 1 / span 2; }
   .card__details { grid-column: 3 / span 2; }
 
-  /* 8 on both axes, as the frames set it — between the tags, and between the
-     year's row and the tags' row when the pair breaks. */
-  .card__tags { row-gap: 8px; }
-  .card__taglist {
-    column-gap: 8px;
-    row-gap: 8px;
-  }
+  /* 8 between the tags, as the frames set it. The gap between wrapped rows
+     is now one value for the whole page, so it is not restated here. */
+  .card__taglist { column-gap: 8px; }
 
   /* ---- About -----------------------------------------------------
      The bio is already on column 2 and narrows with it, so only the drop
