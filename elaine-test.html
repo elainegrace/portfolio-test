@@ -132,6 +132,24 @@
      to straddle: 107 x 47 around a 104.9 x 44 drawing here. The element is the
      drawn shape, so every position it is given is the position the frames
      give, and the file bleeds past it. */
+  /* The drawn square the four section headings carry, in place of the solid
+     one. Trimmed to its ink and inlined, for two reasons.
+
+     Trimmed: the file is a 33x36 canvas around a 28x34 drawing, so placing it
+     whole would land the mark a pixel and a half inside its own box — off the
+     24px rail the logo and the bio line up on, and with the gap to the word
+     wider than the 4 it is set to. Cropped to the ink, the box IS the mark.
+     assets/square.png stays the source; this is a copy of it.
+
+     Inlined: it is used as a mask, and mask images are CORS-checked. Over
+     file:// every file is its own opaque origin, so a linked one is refused
+     and the heading loses its mark altogether — not a faint square, none at
+     all. A data URI is same-origin everywhere and costs no request.
+
+     Sized to put the drawing at the 12px height the plain square had; it is
+     taller than it is wide, so the width follows at 9.88. */
+  --eyebrow-mark: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAiCAYAAABMfblJAAADGklEQVR42rXXyYtcVRQG8F9VdyfSajo4ZIAYp8TWGDQ4DwtxQsSFCOLOrboMiPgHuHGhCxEEwZVRFFQQQXeK4NSJc0QRFeOAbeyOSUvsdFV3qsvN1+HWo9LViS8HHlXv1X33u+ec75zzFfVaY9CCoRPYqNFn41XYgKswiuk8b6Lbb6PhZUCaWMz3pZfX4lFchjNxHjbjKMbwLN7FO8W75T4DQ3MhLsWNeBx70cFnmMtB/sxnF3/ncx+ewOnH86Qf4H2YLTbrBmzp+y94CefgBlyP53GwWHNXFWPJk9txDX5LPu5JPq7EAVyMwwnXj/gSb+VAVbsga+YDvhXtMqfNbNCtXH9gKpvuwrkrINeSJ8/gNXyPp/sR4xMcQStgi3gft4aFD8bj5gDAxcLLcVyCs/ot3BmgN7Ct4k1jJfVVWT8a4szh1fKgzUouDyT+08Xz7vFqahnrhA/TuCJ57AHcH0pfhI3Fi92T6DbdkOR3fI3zU7M9gO+ltq5LIddhZ+Mm7AkPegCHcUtCOF0T4AT+wXo83C+HI2lR99cE+FzStAlvVwE34BDOSEHXYTvwRdJ1b7XNrcZkEr6zxhx+mtL4C2tKD9v4Jv2xVRPg6hT9THDGS8Ch5LE5YGSdiE3j9URtPtcxwA5+TYK31wS4gMsTzg+qgCP4Di+EznXYSJpIEzenqRwDXEgeH8CWGj3cH9J00qN78jUW96dqAlyPdSm1Dt6sTvt9Ad1YE+ChDIJmRt9MFXB36mZPTYDzKYWtmRybqoA7cO1JToh+NpqBvDvaplUFnMC/0TZ1WCccWYdvM6Z6AGfzw9QyNL8tIboDpw0AbEdETaTjrK2ytBU50I4efSja5HBU2/aArMn6STyViDSiWbcUYdyWwx2MIPu8n+TfFUE1lTqazQadQlwdLWRHG18V94sV5Xck5GktDfbhIt6P4e50+ckcYhU+xIt4JA15Jie+Gj/hY3yEO9MeFxL++Tx7GU+GqT1iam/h1Rx+iIrbXJGVQ0VOB6n4sUKgNVRuhkKG8XSHV/BzRb39n79x3ZX8r2s4xXbKAf4DQFza1sUcqqUAAAAASUVORK5CYII=");
+
   --logo-size: 14px;
   --logo-mark: url("assets/Elaine-logo-large.svg");
   --logo-w: 104.9px;
@@ -604,9 +622,15 @@ a.nav__item { text-decoration: none; }
 
 .eyebrow::before {
   content: "";
-  width: 12px;
+  width: 9.88px;
   height: 12px;
+  /* Masked rather than painted as a background image, so the square goes on
+     taking its colour from --ink-strong exactly as the plain one did and the
+     headings can never drift away from their own mark. A browser too old for
+     mask paints the plain rectangle instead, which is what this replaces. */
   background: var(--ink-strong);
+  -webkit-mask: var(--eyebrow-mark) center / 100% 100% no-repeat;
+  mask: var(--eyebrow-mark) center / 100% 100% no-repeat;
 }
 
 /* Both labels occupy one cell so they cross-fade in place. */
