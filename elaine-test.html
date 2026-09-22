@@ -1285,6 +1285,9 @@ a[href]:focus-visible {
   :root {
     --margin: 8px;
     --t-gutter: 8px;   /* --t-column follows: 183 at 390, 148 at 320 */
+    /* 12 here, which pulls every section's top spacing in with it, since
+       those are measured from the heading's foot. */
+    --eyebrow-size: 12px;
   }
 
   /* Column 1, so it narrows with the screen rather than holding a minimum
@@ -1328,6 +1331,25 @@ a[href]:focus-visible {
     flex-wrap: wrap;
     font-size: 10px;
     letter-spacing: -0.2px;
+  }
+
+  /* ---- Work ------------------------------------------------------
+     The card's own guide becomes the page's four columns — company on 1-2,
+     writeup on 3-4. That is the halfway mark, where at tablet the writeup
+     starts a third of the way across on a guide of twelve. */
+  .card__meta {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .card__client { grid-column: 1 / span 2; }
+  .card__details { grid-column: 3 / span 2; }
+
+  /* 8 on both axes, as the frames set it — between the tags, and between the
+     year's row and the tags' row when the pair breaks. */
+  .card__tags { row-gap: 8px; }
+  .card__taglist {
+    column-gap: 8px;
+    row-gap: 8px;
   }
 }
 
