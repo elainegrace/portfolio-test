@@ -92,6 +92,12 @@
   --q-lead: clamp(0, calc(var(--q) / 0.45), 1);
   --q-trail: clamp(0, calc((var(--q) - 0.55) / 0.45), 1);
 
+  /* The Extras blurb arriving, 0 -> 1 a beat after the heading it belongs to
+     has finished locking. Tracking --r put the two at full strength on the
+     same pixel, so they read as one thing appearing; waiting lets the heading
+     land on its own and the subtitle follow it. */
+  --blurb: 0;
+
   /* The Extras blurb letting go of its heading, 0 -> 1 over the last stretch
      before the carousel's top would reach its foot. It belongs to the heading
      on the way in; the carousel is full bleed and would otherwise slide up
@@ -896,9 +902,10 @@ a.nav__item { text-decoration: none; }
   width: calc((var(--column) * 4) + (var(--gutter) * 3));
   max-width: calc(100% - var(--margin) * 2);
   z-index: var(--z-rail);
-  opacity: calc(var(--w-extras) * (1 - var(--release)));
+  /* --release retires it well before Contact, so it needs no --t of its own. */
+  opacity: calc(var(--blurb) * (1 - var(--release)));
   /* Up into place as it fades, the gesture the eyebrow makes with its 8. */
-  transform: translateY(calc((1 - var(--r)) * 20px));
+  transform: translateY(calc((1 - var(--blurb)) * 20px));
   pointer-events: none;
 }
 
@@ -1913,6 +1920,12 @@ html { scroll-behavior: smooth; }
   var toExtrasAt = null;
   var toContactAt = null;
   var releaseAt = null;
+  var blurbAt = null;
+
+  // The blurb waits this long after the heading has locked, then fades in
+  // over this much — so the heading lands by itself and the subtitle follows.
+  var BLURB_DELAY = 160;
+  var BLURB_FADE = 160;
 
   // The blurb lets go over the last RELEASE_LEAD px before the carousel's top
   // would reach its foot, and is gone with RELEASE_CLEAR px still between
@@ -2028,6 +2041,21 @@ html { scroll-behavior: smooth; }
       ) || 0;
       var meets = head(".extras__carousel") - (introTop + intro.offsetHeight);
       releaseAt = { from: meets - RELEASE_LEAD, span: RELEASE_LEAD - RELEASE_CLEAR };
+
+      // Arriving and letting go have to share the stretch between the heading
+      // locking and the carousel coming up. Where that stretch is short — a
+      // small window, or a short viewport — the wait and the fade are scaled
+      // into it rather than overrunning, and at least a third of it is kept
+      // as a hold at full strength so the blurb is never merely passing
+      // through on its way back out.
+      var shut = toExtrasAt.from + toExtrasAt.span;
+      var room = Math.max(releaseAt.from - shut, 1);
+      var budget = room * 0.6;
+      var wait = Math.min(BLURB_DELAY, budget / 2);
+      blurbAt = {
+        from: shut + wait,
+        span: Math.max(Math.min(BLURB_FADE, budget - wait), 1)
+      };
     }
 
     measureBio();
@@ -2101,6 +2129,7 @@ html { scroll-behavior: smooth; }
     root.style.setProperty("--q", ease(at(toAboutAt, y)).toFixed(4));
     root.style.setProperty("--r", ease(at(toExtrasAt, y)).toFixed(4));
     root.style.setProperty("--t", ease(at(toContactAt, y)).toFixed(4));
+    root.style.setProperty("--blurb", ease(at(blurbAt, y)).toFixed(4));
     root.style.setProperty("--release", ease(at(releaseAt, y)).toFixed(4));
   }
 
