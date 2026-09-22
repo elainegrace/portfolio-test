@@ -1269,6 +1269,68 @@ a[href]:focus-visible {
   }
 }
 
+/* ================================================================== *
+ * Mobile — 390px down to 320. Margin and gutter both 8.
+ *
+ * Two guides, and they nest: a two-section one for the hero, About and
+ * Extras, and a four-column one. With the same margin and gutter, two of
+ * the four columns are exactly one of the two sections — the arithmetic
+ * cancels — so the halves tile the measure with a single gutter between
+ * them however either guide is named.
+ *
+ * Only the hero is laid out so far. The sections below it keep their
+ * tablet metrics and pick up the 8px margin until their own pass.
+ * ================================================================== */
+@media (max-width: 390px) {
+  :root {
+    --margin: 8px;
+    --t-gutter: 8px;   /* --t-column follows: 183 at 390, 148 at 320 */
+  }
+
+  /* Column 1, so it narrows with the screen rather than holding a minimum
+     the measure can no longer pay for — which is what had it running into
+     the portrait below about 355. */
+  .bio {
+    min-width: 0;
+    font-size: 16px;
+    letter-spacing: -0.16px;   /* -1%, as the bio tracks at every size */
+  }
+
+  .bio__title {
+    font-size: 12px;
+    letter-spacing: -0.24px;
+  }
+
+  .hero__portrait {
+    width: 140px;
+    height: 140px;
+  }
+
+  /* Column 1 as well, and its values wrap inside it as the column narrows. */
+  .hero__status {
+    width: var(--t-column);
+    min-width: 0;
+  }
+
+  .hero__status dt,
+  .hero__status dd {
+    font-size: 10px;
+    letter-spacing: -0.2px;
+  }
+
+  /* Column 2, set to its right edge so it reads against the margin, and
+     allowed to break between its parts when the column gets too narrow to
+     hold them on one line. Each part stays whole. */
+  .hero__time {
+    left: calc(var(--margin) + var(--t-column) + var(--t-gutter));
+    right: var(--margin);
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    font-size: 10px;
+    letter-spacing: -0.2px;
+  }
+}
+
 html { scroll-behavior: smooth; }
 
 /* The transition is scroll position, not autonomous motion, so it stays —
