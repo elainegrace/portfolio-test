@@ -68,6 +68,15 @@
   --out: 1;
   --in: 0;
   --hand: 0;
+
+  /* What drives the left rail — the logo and the bio — as against the nav,
+     which always travels on --p. On --hand they change place inside the one
+     window where neither hero nor Work is on screen, so the move is never
+     watched; --rail-fade is what empties them for it. The nav is then the
+     only thing crossing the screen, which is the point: it is the one whose
+     new position the reader has to learn. */
+  --rail: var(--hand);
+  --rail-fade: max(var(--out), var(--in));
   --q: 0;
   --r: 0;
   --t: 0;
@@ -153,11 +162,11 @@
   --bio-width-work: calc((var(--column) * 3) + (var(--gutter) * 2));
   --bio-width: calc(
     var(--bio-width-hero)
-    - (var(--p) * (var(--bio-width-hero) - var(--bio-width-work)))
+    - (var(--rail) * (var(--bio-width-hero) - var(--bio-width-work)))
   );
-  --bio-size: calc(30px - (var(--p) * 10px));
-  --bio-lead: calc(39px - (var(--p) * 13px));
-  --bio-track: calc(-0.3px + (var(--p) * 0.1px));
+  --bio-size: calc(30px - (var(--rail) * 10px));
+  --bio-lead: calc(39px - (var(--rail) * 13px));
+  --bio-track: calc(-0.3px + (var(--rail) * 0.1px));
   --bio-logo-gap: 16px;   /* between the bio's head and the logo's foot */
 
   /* Two values that depend on how the copy actually sets: the bio's height
@@ -168,7 +177,7 @@
   --bio-work-height: 104px;
   --bio-indent-base: 167px;
   --bio-label-gap: 36px;
-  --bio-indent: calc(var(--bio-indent-base) * (1 - var(--p)));
+  --bio-indent: calc(var(--bio-indent-base) * (1 - var(--rail)));
 
   /* Colour */
   --ink: #666666;
@@ -189,7 +198,7 @@
      pin lasts (k - 1) viewports while the hero's content fades over 0.45k.
      Keeping the fade inside the pin wants k >= 1.82; 2 clears it and is a
      round number to tune from. */
-  --hero-scroll: 2;
+  --hero-scroll: 3;
 
   /* Carousel travel, in pixels per second. Constant at any tile count or
      viewport width — the loop gets longer, not faster. */
@@ -238,8 +247,8 @@ body {
   left: var(--margin);
   top: calc(
     var(--header-top)
-    + (var(--p) * (var(--vh) - var(--footer-offset) - var(--bio-work-height)
-                   - var(--bio-logo-gap) - var(--logo-h) - var(--header-top)))
+    + (var(--rail) * (var(--vh) - var(--footer-offset) - var(--bio-work-height)
+                      - var(--bio-logo-gap) - var(--logo-h) - var(--header-top)))
     + (var(--q) * (var(--bio-work-height) + var(--bio-logo-gap)))
   );
   z-index: var(--z-rail);
@@ -260,7 +269,7 @@ body {
   color: transparent;
   white-space: nowrap;
   /* Contact has no logo — the copyright takes this corner. */
-  opacity: calc(1 - var(--t));
+  opacity: calc(var(--rail-fade) * (1 - var(--t)));
 }
 
 /* The mark, bleeding its stroke a pixel past the shape the positions are given
@@ -287,8 +296,8 @@ body {
   left: var(--margin);
   top: calc(
     var(--bio-top-hero)
-    + (var(--p) * (var(--vh) - var(--footer-offset)
-                   - var(--bio-work-height) - var(--bio-top-hero)))
+    + (var(--rail) * (var(--vh) - var(--footer-offset)
+                      - var(--bio-work-height) - var(--bio-top-hero)))
   );
   z-index: var(--z-rail);
   width: var(--bio-width);
@@ -300,7 +309,7 @@ body {
   color: var(--muted);
   word-break: break-word;
   /* Leaves the rail in About, handing its slot to the logo. */
-  opacity: calc(1 - var(--q));
+  opacity: calc(var(--rail-fade) * (1 - var(--q)));
   transform: translateY(calc(var(--q) * 12px));
 }
 
@@ -317,7 +326,7 @@ body {
   letter-spacing: -0.28px;
   text-transform: uppercase;
   white-space: nowrap;
-  opacity: clamp(0, calc((0.3 - var(--p)) / 0.3), 1);
+  opacity: clamp(0, calc((0.3 - var(--rail)) / 0.3), 1);
 }
 
 .bio__text {
@@ -1668,8 +1677,9 @@ html { scroll-behavior: smooth; }
   <!-- TEMPORARY: a bench for comparing the two smoothing levers. Not part of
        the design — remove once the curve and the runway are settled. -->
   <aside class="bench" aria-label="Animation bench">
-    <p class="bench__row"><span>curve</span><button type="button" data-ease="cubic" class="is-on">cubic</button><button type="button" data-ease="sine">sine</button></p>
-    <p class="bench__row"><span>runway</span><button type="button" data-runway="1">1</button><button type="button" data-runway="1.5">1.5</button><button type="button" data-runway="2" class="is-on">2</button><button type="button" data-runway="2.5">2.5</button><button type="button" data-runway="3">3</button></p>
+    <p class="bench__row"><span>curve</span><button type="button" data-ease="cubic">cubic</button><button type="button" data-ease="sine" class="is-on">sine</button></p>
+    <p class="bench__row"><span>runway</span><button type="button" data-runway="1">1</button><button type="button" data-runway="1.5">1.5</button><button type="button" data-runway="2">2</button><button type="button" data-runway="2.5">2.5</button><button type="button" data-runway="3" class="is-on">3</button></p>
+    <p class="bench__row"><span>rail</span><button type="button" data-rail="travel">travel</button><button type="button" data-rail="fade" class="is-on">fade</button></p>
   </aside>
 
   <nav class="nav" aria-label="Primary">
@@ -1819,7 +1829,13 @@ html { scroll-behavior: smooth; }
       return -(Math.cos(Math.PI * t) - 1) / 2;
     }
   };
-  var ease = EASINGS.cubic;
+  var ease = EASINGS.sine;
+
+  // Which value drives the left rail. "fade" hands the logo and the bio over
+  // on --hand, inside the window where both are transparent, so they change
+  // place without being watched; "travel" is the old behaviour, where they
+  // cross the screen on --p alongside the nav. Kept switchable on the bench.
+  var railMode = "fade";
 
   // Layout-dependent values are read here rather than per frame, so scrolling
   // never forces a reflow.
@@ -1860,7 +1876,10 @@ html { scroll-behavior: smooth; }
     // back as the freely-wrapped one and the bio misses its footing.
     var wasWork = bio.classList.contains("is-work");
     bio.classList.add("is-work");
+    // Both, because --rail is one or the other and the measure has to be
+    // taken with the bio at its Work width and size either way.
     root.style.setProperty("--p", "1");
+    root.style.setProperty("--hand", "1");
     root.style.setProperty("--bio-work-height", bio.offsetHeight + "px");
     if (!wasWork) bio.classList.remove("is-work");
   }
@@ -1872,16 +1891,23 @@ html { scroll-behavior: smooth; }
     var toWork = clamp01(y / heroHeight);
     var eased = ease(toWork);
     root.style.setProperty("--p", eased.toFixed(4));
-    // Late enough that the bio is already at its Work measure, so switching
-    // the breaks in costs one small reflow rather than a visible jump.
-    if (bio) bio.classList.toggle("is-work", eased >= 0.9);
     // Hero-only elements lead out; the eyebrow trails in behind them, so the
     // bottom-left slot is empty before the bio arrives in it.
     root.style.setProperty("--out", clamp01(1 - toWork / 0.45).toFixed(4));
     root.style.setProperty("--in", clamp01((toWork - 0.5) / 0.4).toFixed(4));
     // The window between those two, where nothing hero and nothing Work is on
     // screen. Anything that changes place rather than travelling moves here.
-    root.style.setProperty("--hand", clamp01((toWork - 0.45) / 0.05).toFixed(4));
+    var hand = clamp01((toWork - 0.45) / 0.05);
+    root.style.setProperty("--hand", hand.toFixed(4));
+    // Swap the Work line breaks in while the change is unwatched: halfway
+    // through the blind window when the rail fades, and late in the travel
+    // when it does not, where the bio is already at its Work measure.
+    if (bio) {
+      bio.classList.toggle(
+        "is-work",
+        railMode === "fade" ? hand >= 0.5 : eased >= 0.9
+      );
+    }
 
     var ramp = Math.max(window.innerHeight * RAMP, 1);
     var toAbout = clamp01((y - (aboutTop - ramp)) / ramp);
@@ -1915,6 +1941,15 @@ html { scroll-behavior: smooth; }
       if (button.dataset.ease) {
         ease = EASINGS[button.dataset.ease];
         apply();
+      } else if (button.dataset.rail) {
+        railMode = button.dataset.rail;
+        var fading = railMode === "fade";
+        root.style.setProperty("--rail", fading ? "var(--hand)" : "var(--p)");
+        root.style.setProperty(
+          "--rail-fade",
+          fading ? "max(var(--out), var(--in))" : "1"
+        );
+        measure();
       } else {
         root.style.setProperty("--hero-scroll", button.dataset.runway);
         measure();
