@@ -683,12 +683,32 @@ a.nav__item { text-decoration: none; }
   margin: 0;
 }
 
-/* 550px tall at every desktop width — the frames draw it 923 x 550 at 1440 and
-   504 x 550 at 811 — so the card narrows by cropping rather than by shrinking.
+/* The slot takes the artwork's own shape rather than a flat height. It was
+   550 at every width, which suited a plain placeholder: the card narrowed by
+   cropping and nothing was lost. Real artwork cannot narrow that way. The
+   card runs from 923 wide at 1440 down to 503 at 811 and 374 at mobile, so a
+   fixed 550 would have asked a 16:9 board to fill a portrait slot — a 6% clip
+   at 1440, half the picture gone at 811, and two thirds at 390.
+
+   On the artwork's ratio the composition is whole at every width. At 1440
+   that makes the slot 923 x 519 where the frames drew 923 x 550; the card's
+   own 809px slot absorbs the 31, so nothing below it moves.
+
+   The background still shows through for the three covers not yet supplied.
    Square corners. */
 .card__media {
-  height: 550px;
+  aspect-ratio: 16 / 9;
   background: var(--placeholder-media);
+  overflow: hidden;
+}
+
+/* cover rather than contain, so a cover whose ratio is a little off the slot
+   fills it instead of sitting in bars. */
+.card__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 /* The card's own 8-column subgrid: name block on 1-4, details on 5-8 —
@@ -1639,7 +1659,7 @@ html { scroll-behavior: smooth; }
 
     <div class="work__cards">
       <article class="card">
-        <div class="card__media" role="img" aria-label="Website Redesign preview"></div>
+        <div class="card__media"><img src="assets/Case%20Study%201.webp" alt="Sunollo website redesign: the home solutions landing page, an Abundance Pro product page, and a plan comparison table" loading="lazy" decoding="async"></div>
         <div class="card__meta">
           <div class="card__client">
             <span class="card__mark"><img src="assets/logo-sunollo.webp" alt="Sunollo"></span>
