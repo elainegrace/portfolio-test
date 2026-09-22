@@ -1045,9 +1045,12 @@ a[href]:focus-visible {
     width: var(--t-column);
     min-width: 179px;
     max-width: var(--bio-width-hero);   /* 464, as on desktop */
-    font-size: 20px;
-    line-height: 26px;
-    letter-spacing: -0.2px;
+    /* Both faces at one size, so 130% is one number per line whatever a line
+       mixes. Schoolbell takes this by inheritance — it has no size of its own,
+       which is what keeps the pair from drifting apart. */
+    font-size: 18px;
+    line-height: 1.3;
+    letter-spacing: -0.18px;   /* -1%, as the bio tracks at every size */
     opacity: 1;
     transform: none;
   }
