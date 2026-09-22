@@ -125,6 +125,8 @@
   --eyebrow-lead: calc(var(--eyebrow-size) * 1.3);
   --eyebrow-foot: calc(var(--eyebrow-top) + var(--eyebrow-lead));
 
+  --about-headline-size: 20px;
+
   /* Contact: the photo and the details both hang this far below the heading's
      foot, and the block's type steps down with the breakpoint. */
   --contact-drop: 200px;
@@ -718,9 +720,9 @@ a.nav__item { text-decoration: none; }
 .about__headline {
   margin: 0;
   font-weight: 500;
-  font-size: 26px;
+  font-size: var(--about-headline-size);
   line-height: 1.3;
-  letter-spacing: -0.52px;
+  letter-spacing: calc(var(--about-headline-size) * -0.02);
   color: var(--ink-strong);
 }
 
