@@ -196,9 +196,19 @@
 
      The stage can only stay pinned for the hero's height less its own, so the
      pin lasts (k - 1) viewports while the hero's content fades over 0.45k.
-     Keeping the fade inside the pin wants k >= 1.82; 2 clears it and is a
-     round number to tune from. */
-  --hero-scroll: 3;
+     Keeping the fade inside the pin wants k >= 1.82, so 2 is the shortest
+     runway that still empties the hero before the stage starts to slide. */
+  --hero-scroll: 2;
+
+  /* How far below the Work section's top the first card sits, in viewports.
+     This is the beat after the heading lands: the rail finishes arriving at
+     the hero's end, and the card's top edge does not reach the bottom of the
+     viewport until --work-lead past it, so there is a stretch of scrolling
+     with nothing on screen but the heading and the rail it belongs to.
+
+     It is measured from the section, not from the card above it, so it only
+     ever applies to the first one — the rest keep their 809px slots. */
+  --work-lead: 1.3;
 
   /* Carousel travel, in pixels per second. Constant at any tile count or
      viewport width — the loop gets longer, not faster. */
@@ -564,7 +574,7 @@ a.nav__item { text-decoration: none; }
   content: "";
   width: 12px;
   height: 12px;
-  background: var(--ink);
+  background: var(--ink-strong);
 }
 
 /* Both labels occupy one cell so they cross-fade in place. */
@@ -578,7 +588,7 @@ a.nav__item { text-decoration: none; }
   font-size: var(--eyebrow-size);
   line-height: 1.3;
   letter-spacing: calc(var(--eyebrow-size) * -0.02);
-  color: var(--ink);
+  color: var(--ink-strong);
   text-transform: uppercase;
   white-space: nowrap;
 }
@@ -598,6 +608,7 @@ a.nav__item { text-decoration: none; }
   margin-right: var(--margin);
   width: calc((var(--column) * 8) + (var(--gutter) * 7));
   max-width: 923px;
+  padding-top: calc(var(--vh) * var(--work-lead));
 }
 
 /* Each project gets an 809px slot with its card at the top, which is how the
@@ -1678,7 +1689,7 @@ html { scroll-behavior: smooth; }
        the design — remove once the curve and the runway are settled. -->
   <aside class="bench" aria-label="Animation bench">
     <p class="bench__row"><span>curve</span><button type="button" data-ease="cubic">cubic</button><button type="button" data-ease="sine" class="is-on">sine</button></p>
-    <p class="bench__row"><span>runway</span><button type="button" data-runway="1">1</button><button type="button" data-runway="1.5">1.5</button><button type="button" data-runway="2">2</button><button type="button" data-runway="2.5">2.5</button><button type="button" data-runway="3" class="is-on">3</button></p>
+    <p class="bench__row"><span>runway</span><button type="button" data-runway="1">1</button><button type="button" data-runway="1.5">1.5</button><button type="button" data-runway="2" class="is-on">2</button><button type="button" data-runway="2.5">2.5</button><button type="button" data-runway="3">3</button></p>
     <p class="bench__row"><span>rail</span><button type="button" data-rail="travel">travel</button><button type="button" data-rail="fade" class="is-on">fade</button></p>
   </aside>
 
