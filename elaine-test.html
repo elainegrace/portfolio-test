@@ -194,11 +194,13 @@
      handover more room to travel in without changing where anything sits —
      the section gets taller, the picture does not. 1 is the old behaviour.
 
-     The stage can only stay pinned for the hero's height less its own, so the
-     pin lasts (k - 1) viewports while the hero's content fades over 0.45k.
-     Keeping the fade inside the pin wants k >= 1.82, so 2 is the shortest
-     runway that still empties the hero before the stage starts to slide. */
-  --hero-scroll: 2;
+     The stage can only stay pinned for the hero's height less its own, so
+     the pin lasts (k - 1) viewports out of k. The hero's content has to be
+     gone before that runs out, or the tail of its fade rides the scroll
+     upward — so the handler measures the pin and cuts the fade to fit inside
+     it, rather than the fade's fractions being written down here. Any runway
+     above 1 therefore works; this one is a feel, not a constraint. */
+  --hero-scroll: 1.5;
 
   /* How far below the Work section's top the first card sits, in viewports.
      This is the beat after the heading lands: the rail finishes arriving at
@@ -209,6 +211,18 @@
      It is measured from the section, not from the card above it, so it only
      ever applies to the first one — the rest keep their 809px slots. */
   --work-lead: 1.3;
+
+  /* And the same beat between sections, as trailing space on the section
+     being left. Without it the sections overlap on screen — at 1440 x 900 the
+     last project card had not cleared the top before About's copy reached the
+     bottom, by 597px — so there was no moment at which the heading could
+     change over without naming one section while the reader was looking at
+     another. A viewport of nothing opens that moment up.
+
+     It is stated on the outgoing section rather than the incoming one because
+     a section's own top padding is the designed distance from the heading to
+     its content, which this must not disturb. */
+  --section-lead: 1;
 
   /* Carousel travel, in pixels per second. Constant at any tile count or
      viewport width — the loop gets longer, not faster. */
@@ -553,6 +567,7 @@ a.nav__item { text-decoration: none; }
   position: relative;
   z-index: var(--z-content);
   min-height: var(--vh);
+  padding-bottom: calc(var(--vh) * var(--section-lead));
 }
 
 /* Part of the left rail, so it holds at the top of the viewport rather than
@@ -751,7 +766,7 @@ a.nav__item { text-decoration: none; }
   z-index: var(--z-content);
   min-height: var(--vh);
   padding-top: calc(var(--eyebrow-foot) + 150px);
-  padding-bottom: 161px;
+  padding-bottom: calc(161px + (var(--vh) * var(--section-lead)));
 }
 
 .about__content {
@@ -815,7 +830,7 @@ a.nav__item { text-decoration: none; }
      this one declaration lands on 210.8 here and the 208 the tablet frames
      draw, without a breakpoint of its own. */
   padding-top: calc(var(--eyebrow-foot) + 150px);
-  padding-bottom: 161px;
+  padding-bottom: calc(161px + (var(--vh) * var(--section-lead)));
 }
 
 /* Columns 9-12, on the eyebrow's line */
@@ -1194,6 +1209,11 @@ a[href]:focus-visible {
     /* Clears the fixed nav (60 + its own height) and the logo band below it. */
     padding-bottom: 140px;
   }
+
+  /* No lead between sections here: these are laid out to their frames, and
+     the handler falls back to its old measure where there is no gap for a
+     changeover to sit in. */
+  .work { padding-bottom: 0; }
 
   /* One project per screen stops meaning anything once the card is only as
      tall as its content, so the rhythm is a plain 120px between cards. */
@@ -1689,7 +1709,7 @@ html { scroll-behavior: smooth; }
        the design — remove once the curve and the runway are settled. -->
   <aside class="bench" aria-label="Animation bench">
     <p class="bench__row"><span>curve</span><button type="button" data-ease="cubic">cubic</button><button type="button" data-ease="sine" class="is-on">sine</button></p>
-    <p class="bench__row"><span>runway</span><button type="button" data-runway="1">1</button><button type="button" data-runway="1.5">1.5</button><button type="button" data-runway="2" class="is-on">2</button><button type="button" data-runway="2.5">2.5</button><button type="button" data-runway="3">3</button></p>
+    <p class="bench__row"><span>runway</span><button type="button" data-runway="1">1</button><button type="button" data-runway="1.5" class="is-on">1.5</button><button type="button" data-runway="2">2</button><button type="button" data-runway="2.5">2.5</button><button type="button" data-runway="3">3</button></p>
     <p class="bench__row"><span>rail</span><button type="button" data-rail="travel">travel</button><button type="button" data-rail="fade" class="is-on">fade</button></p>
   </aside>
 
@@ -1816,17 +1836,60 @@ html { scroll-behavior: smooth; }
   var bioTitle = document.querySelector(".bio__title");
   var nav = document.querySelector(".nav");
   var eyebrow = document.querySelector(".eyebrow");
+  var stage = document.querySelector(".hero__stage");
   var heroHeight = 1;
-  var aboutTop = 0;
-  var extrasTop = 0;
-  var contactTop = 0;
   var queued = false;
 
-  // Fraction of a viewport each changeover ramps over, ending as the incoming
-  // section's top reaches the top of the viewport.
+  // The hero's three phases, as fractions of the runway. Written by measure()
+  // rather than fixed, because where they can fall depends on how long the
+  // sticky stage stays pinned.
+  var outEnd = 0.45;
+  var handEnd = 0.5;
+  var inEnd = 0.9;
+
+  // One {from, span} per changeover, in document pixels. Written by measure().
+  var toAboutAt = null;
+  var toExtrasAt = null;
+  var toContactAt = null;
+
+  // The longest a changeover is allowed to take, as a fraction of a viewport.
+  // Where the gap between two sections is shorter than this the changeover
+  // takes the gap instead.
   var RAMP = 0.5;
 
   function clamp01(n) { return n < 0 ? 0 : n > 1 ? 1 : n; }
+
+  // The foot of what a section last shows, and the head of what the next one
+  // shows first. Not the section boxes: those carry the leads and the padding,
+  // so their edges say nothing about when the reader can see anything.
+  function foot(sel) {
+    var el = document.querySelector(sel);
+    return el ? el.getBoundingClientRect().bottom + window.scrollY : 0;
+  }
+
+  function head(sel) {
+    var el = document.querySelector(sel);
+    return el ? el.getBoundingClientRect().top + window.scrollY : 0;
+  }
+
+  // A changeover runs across the stretch where neither section is on screen:
+  // it opens as the outgoing content clears the top of the viewport and shuts
+  // as the incoming content reaches the bottom. So the heading has finished
+  // naming the new section before any of it is visible, and it changes over on
+  // an empty screen rather than over something the reader is still reading.
+  //
+  // Where no such stretch exists — tablet and mobile, laid out to their frames
+  // rather than to this, where the sections meet with no gap — the old measure
+  // stands: half a viewport ending as the section's top reaches the top.
+  function changeover(prevFoot, nextHead, sectionTop) {
+    var vh = window.innerHeight;
+    var open = prevFoot;
+    var shut = nextHead - vh;
+    var gap = shut - open;
+    if (gap < 1) return { from: sectionTop - (vh * RAMP), span: vh * RAMP };
+    var span = Math.min(gap, vh * RAMP);
+    return { from: open + ((gap - span) / 2), span: span };
+  }
 
   // Two curves for the travel, both symmetrical, differing in how much of the
   // motion they pack into the middle. The midpoint slope is what reads as
@@ -1852,9 +1915,38 @@ html { scroll-behavior: smooth; }
   // never forces a reflow.
   function measure() {
     heroHeight = Math.max(hero.offsetHeight, 1);
-    aboutTop = about.offsetTop;
-    extrasTop = extras.offsetTop;
-    contactTop = contact.offsetTop;
+
+    // How much of the runway the stage stays pinned for. The hero's content
+    // has to have faded out inside that, and the blind window where the rail
+    // changes place has to shut on its end — so both are cut from the measured
+    // pin rather than written down, and any runway above 1 holds. At a runway
+    // of 2 this reproduces the 0.45 / 0.5 / 0.9 the fractions used to be.
+    //
+    // Below a runway of about 1.05 there is no pin worth cutting to — tablet,
+    // where the hero is one viewport and its content simply scrolls away — and
+    // the old fractions stand.
+    var pin = stage ? (heroHeight - stage.offsetHeight) / heroHeight : 0;
+    if (pin > 0.05) {
+      outEnd = pin * 0.9;
+      handEnd = pin;
+    } else {
+      outEnd = 0.45;
+      handEnd = 0.5;
+    }
+    inEnd = handEnd + ((1 - handEnd) * 0.8);
+
+    var cards = document.querySelectorAll(".card");
+    var lastCard = cards.length
+      ? cards[cards.length - 1].querySelector(".card__meta")
+      : null;
+    var workFoot = lastCard
+      ? lastCard.getBoundingClientRect().bottom + window.scrollY
+      : 0;
+
+    toAboutAt = changeover(workFoot, head(".about__content"), about.offsetTop);
+    toExtrasAt = changeover(foot(".about__content"), head(".extras__intro"), extras.offsetTop);
+    toContactAt = changeover(foot(".extras__carousel"), head(".contact__portrait"), contact.offsetTop);
+
     measureBio();
     measureNav();
     apply();
@@ -1904,11 +1996,14 @@ html { scroll-behavior: smooth; }
     root.style.setProperty("--p", eased.toFixed(4));
     // Hero-only elements lead out; the eyebrow trails in behind them, so the
     // bottom-left slot is empty before the bio arrives in it.
-    root.style.setProperty("--out", clamp01(1 - toWork / 0.45).toFixed(4));
-    root.style.setProperty("--in", clamp01((toWork - 0.5) / 0.4).toFixed(4));
+    root.style.setProperty("--out", clamp01(1 - toWork / outEnd).toFixed(4));
+    root.style.setProperty(
+      "--in",
+      clamp01((toWork - handEnd) / (inEnd - handEnd)).toFixed(4)
+    );
     // The window between those two, where nothing hero and nothing Work is on
     // screen. Anything that changes place rather than travelling moves here.
-    var hand = clamp01((toWork - 0.45) / 0.05);
+    var hand = clamp01((toWork - outEnd) / (handEnd - outEnd));
     root.style.setProperty("--hand", hand.toFixed(4));
     // Swap the Work line breaks in while the change is unwatched: halfway
     // through the blind window when the rail fades, and late in the travel
@@ -1920,13 +2015,14 @@ html { scroll-behavior: smooth; }
       );
     }
 
-    var ramp = Math.max(window.innerHeight * RAMP, 1);
-    var toAbout = clamp01((y - (aboutTop - ramp)) / ramp);
-    var toExtras = clamp01((y - (extrasTop - ramp)) / ramp);
-    var toContact = clamp01((y - (contactTop - ramp)) / ramp);
-    root.style.setProperty("--q", ease(toAbout).toFixed(4));
-    root.style.setProperty("--r", ease(toExtras).toFixed(4));
-    root.style.setProperty("--t", ease(toContact).toFixed(4));
+    root.style.setProperty("--q", ease(at(toAboutAt, y)).toFixed(4));
+    root.style.setProperty("--r", ease(at(toExtrasAt, y)).toFixed(4));
+    root.style.setProperty("--t", ease(at(toContactAt, y)).toFixed(4));
+  }
+
+  function at(window_, y) {
+    if (!window_) return 0;
+    return clamp01((y - window_.from) / Math.max(window_.span, 1));
   }
 
   function onScroll() {
