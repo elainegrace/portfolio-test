@@ -1286,8 +1286,15 @@ a[href]:focus-visible {
     --margin: 8px;
     --t-gutter: 8px;   /* --t-column follows: 183 at 390, 148 at 320 */
     /* 12 here, which pulls every section's top spacing in with it, since
-       those are measured from the heading's foot. */
+       those are measured from the heading's foot. Contact's photo keeps its
+       250 and lands on 305.6 for that reason alone. */
     --eyebrow-size: 12px;
+
+    --about-headline-size: 16px;
+
+    --contact-email-size: 14px;
+    --contact-link-size: 12px;
+    --contact-link-w: 45px;
   }
 
   /* Column 1, so it narrows with the screen rather than holding a minimum
@@ -1350,6 +1357,59 @@ a[href]:focus-visible {
   .card__taglist {
     column-gap: 8px;
     row-gap: 8px;
+  }
+
+  /* ---- About -----------------------------------------------------
+     The bio is already on column 2 and narrows with it, so only the drop
+     below the heading and the type change. */
+  .about { padding-top: calc(var(--eyebrow-foot) + 80px); }
+
+  .about__body p {
+    font-size: 12px;
+    letter-spacing: -0.24px;
+  }
+
+  /* ---- Extras ----------------------------------------------------
+     The blurb leaves the twelve-column guide for column 2 of the two, the
+     same half the About bio and the Contact details take. The carousel's
+     150 needs no declaration — the smaller heading moved it already. */
+  .extras__intro {
+    left: calc(var(--margin) + var(--t-column) + var(--t-gutter));
+    width: var(--t-column);
+  }
+
+  .extras__intro p {
+    font-size: 12px;
+    letter-spacing: -0.24px;
+  }
+
+  /* ---- Contact ---------------------------------------------------
+     The details block leaves its flat 168 for column 2, which is what lets
+     it shrink with the screen — that fixed width was the last thing still
+     pushing the page sideways at 320. */
+  .contact__portrait {
+    width: 140px;
+    height: 140px;
+  }
+
+  .contact__details { width: var(--t-column); }
+
+  /* The labels run 167 of ink at 14px, which fitted the 168 block at tablet
+     with a pixel to spare and does not fit column 2 here. They wrap instead,
+     which is the two-line shape the 320 frame draws. */
+  .contact__labels { white-space: normal; }
+
+  .contact__copyright,
+  .contact__clock {
+    font-size: 10px;
+    letter-spacing: -0.2px;
+  }
+
+  /* Column 2 here rather than set against the right margin, so it sits over
+     the details block above it. */
+  .contact__clock {
+    left: calc(var(--margin) + var(--t-column) + var(--t-gutter));
+    right: auto;
   }
 }
 
