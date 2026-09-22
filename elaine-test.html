@@ -81,6 +81,12 @@
   --r: 0;
   --t: 0;
 
+  /* The Extras blurb letting go of its heading, 0 -> 1 over the last stretch
+     before the carousel's top would reach its foot. It belongs to the heading
+     on the way in; the carousel is full bleed and would otherwise slide up
+     behind it, so it leaves rather than be scrolled over. */
+  --release: 0;
+
   /* Which section the rail and nav are currently naming. These sum to 1 and
      hand off as each progress value completes, so a new section is one more
      weight rather than a rethread of everything downstream. */
@@ -855,7 +861,7 @@ a.nav__item { text-decoration: none; }
   width: calc((var(--column) * 4) + (var(--gutter) * 3));
   max-width: calc(100% - var(--margin) * 2);
   z-index: var(--z-rail);
-  opacity: var(--w-extras);
+  opacity: calc(var(--w-extras) * (1 - var(--release)));
   /* Up into place as it fades, the gesture the eyebrow makes with its 8. */
   transform: translateY(calc((1 - var(--r)) * 20px));
   pointer-events: none;
@@ -1302,6 +1308,18 @@ a[href]:focus-visible {
   .extras__intro {
     left: calc(var(--margin) + (var(--pitch) * 4));
     width: calc((var(--column) * 8) + (var(--gutter) * 7));
+  }
+
+  /* Back in the flow at this width, and none of the fixed treatment applies.
+     There is no section lead here, so the blurb crosses the heading's line at
+     the very scroll where the changeover completes — it has nothing to catch
+     up to. Fixing it would buy nothing and put the carousel behind it. */
+  .extras__intro {
+    position: absolute;
+    z-index: auto;
+    opacity: 1;
+    transform: none;
+    pointer-events: auto;
   }
 
   /* The space between tiles is the carousel's own, not the grid's — it is 8
@@ -1871,6 +1889,13 @@ html { scroll-behavior: smooth; }
   var toAboutAt = null;
   var toExtrasAt = null;
   var toContactAt = null;
+  var releaseAt = null;
+
+  // The blurb lets go over the last RELEASE_LEAD px before the carousel's top
+  // would reach its foot, and is gone with RELEASE_CLEAR px still between
+  // them — so no tile is ever behind the text, at any scroll speed.
+  var RELEASE_LEAD = 160;
+  var RELEASE_CLEAR = 8;
 
   // The longest a changeover is allowed to take, as a fraction of a viewport.
   // Where the gap between two sections is shorter than this the changeover
@@ -1970,6 +1995,18 @@ html { scroll-behavior: smooth; }
     toExtrasAt = changeover(foot(".about__content"), head(".extras__carousel"), extras.offsetTop);
     toContactAt = changeover(foot(".extras__carousel"), head(".contact__portrait"), contact.offsetTop);
 
+    // The blurb is fixed, so its foot is a viewport position, not a document
+    // one: the eyebrow's own top plus however tall the copy sets. offsetHeight
+    // rather than the rect, which carries the 20px the fade-in rides in on.
+    var intro = document.querySelector(".extras__intro");
+    if (intro) {
+      var introTop = parseFloat(
+        getComputedStyle(root).getPropertyValue("--eyebrow-top")
+      ) || 0;
+      var meets = head(".extras__carousel") - (introTop + intro.offsetHeight);
+      releaseAt = { from: meets - RELEASE_LEAD, span: RELEASE_LEAD - RELEASE_CLEAR };
+    }
+
     measureBio();
     measureNav();
     apply();
@@ -2041,6 +2078,7 @@ html { scroll-behavior: smooth; }
     root.style.setProperty("--q", ease(at(toAboutAt, y)).toFixed(4));
     root.style.setProperty("--r", ease(at(toExtrasAt, y)).toFixed(4));
     root.style.setProperty("--t", ease(at(toContactAt, y)).toFixed(4));
+    root.style.setProperty("--release", ease(at(releaseAt, y)).toFixed(4));
   }
 
   function at(window_, y) {
