@@ -181,6 +181,16 @@
   --placeholder: #e9e7e5;
   --placeholder-media: #d9d9d9;
 
+  /* How many viewport heights of scroll the hero holds for. This buys the
+     handover more room to travel in without changing where anything sits —
+     the section gets taller, the picture does not. 1 is the old behaviour.
+
+     The stage can only stay pinned for the hero's height less its own, so the
+     pin lasts (k - 1) viewports while the hero's content fades over 0.45k.
+     Keeping the fade inside the pin wants k >= 1.82; 2 clears it and is a
+     round number to tune from. */
+  --hero-scroll: 2;
+
   /* Carousel travel, in pixels per second. Constant at any tile count or
      viewport width — the loop gets longer, not faster. */
   --extras-speed: 45;
@@ -399,10 +409,25 @@ a.nav__item { text-decoration: none; }
 /* ================================================================== *
  * Hero — everything here is hero-only and clears out on scroll
  * ================================================================== */
+/* The hero is scroll length, not picture: it runs --hero-scroll viewports
+   tall while its stage stays pinned to the top for the whole of it. The
+   handover therefore travels the same distance over more scrolling, which is
+   the whole of the smoothing — nothing moves further, it just takes longer to
+   get there. Work begins only once it has landed.
+
+   The overflow lives on the stage rather than here: a scroll container on the
+   hero would make the stage stick inside it rather than to the viewport. */
 .hero {
   position: relative;
   z-index: var(--z-content);
   width: 100%;
+  height: calc(var(--vh) * var(--hero-scroll));
+  min-height: calc(659px * var(--hero-scroll));
+}
+
+.hero__stage {
+  position: sticky;
+  top: 0;
   height: var(--vh);
   min-height: 659px;
   overflow: hidden;
@@ -976,6 +1001,11 @@ a[href]:focus-visible {
 @media (max-width: 810px) {
   :root {
     --margin: 12px;
+    /* No runway here. The bio does not travel at this width — it is ordinary
+       hero content that scrolls away — so a pinned stage would hold the
+       portrait still while the bio left without it. */
+    --hero-scroll: 1;
+
     /* The 12-column guide — what Extras' blurb and the card's own columns sit
        on — takes an 8px gutter here rather than the 16 it has on desktop. The
        two-column guide below is a separate thing and keeps its 12. */
@@ -1431,22 +1461,24 @@ html { scroll-behavior: smooth; }
 
 <body>
   <section class="hero">
-    <figure class="hero__portrait hero__transient">
-      <img src="assets/elainepic.webp" alt="Elaine Bayhon">
-    </figure>
+    <div class="hero__stage">
+      <figure class="hero__portrait hero__transient">
+        <img src="assets/elainepic.webp" alt="Elaine Bayhon">
+      </figure>
 
-    <dl class="hero__status hero__transient">
-      <div class="hero__status-row">
-        <dt>CURRENTLY</dt>
-        <dd><span class="hero__dot" aria-hidden="true">•</span>Open for new roles</dd>
-      </div>
-      <div class="hero__status-row">
-        <dt>PREVIOUSLY</dt>
-        <dd>Owned complex design problems at Sunollo and Ohmyhome</dd>
-      </div>
-    </dl>
+      <dl class="hero__status hero__transient">
+        <div class="hero__status-row">
+          <dt>CURRENTLY</dt>
+          <dd><span class="hero__dot" aria-hidden="true">•</span>Open for new roles</dd>
+        </div>
+        <div class="hero__status-row">
+          <dt>PREVIOUSLY</dt>
+          <dd>Owned complex design problems at Sunollo and Ohmyhome</dd>
+        </div>
+      </dl>
 
-    <p class="clock hero__time hero__transient"><span>SINGAPORE</span><span>・</span><time class="clock__time" datetime="">12:33 PM (UTC+8)</time></p>
+      <p class="clock hero__time hero__transient"><span>SINGAPORE</span><span>・</span><time class="clock__time" datetime="">12:33 PM (UTC+8)</time></p>
+    </div>
   </section>
 
   <section class="work" id="work" aria-label="Selected work">
