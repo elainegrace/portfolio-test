@@ -1799,6 +1799,7 @@ html { scroll-behavior: smooth; }
     <p class="bench__row"><span>runway</span><button type="button" data-runway="1">1</button><button type="button" data-runway="1.5" class="is-on">1.5</button><button type="button" data-runway="2">2</button><button type="button" data-runway="2.5">2.5</button><button type="button" data-runway="3">3</button></p>
     <p class="bench__row"><span>rail</span><button type="button" data-rail="travel">travel</button><button type="button" data-rail="fade" class="is-on">fade</button></p>
     <p class="bench__row"><span>gaps</span><button type="button" data-gaps="0">off</button><button type="button" data-gaps="1" class="is-on">on</button></p>
+    <p class="bench__row"><span>nav bg</span><button type="button" data-nav="245, 243, 242" class="is-on">F5F3F2</button><button type="button" data-nav="249, 248, 247">F9F8F7</button></p>
   </aside>
 
   <nav class="nav" aria-label="Primary">
@@ -2181,6 +2182,10 @@ html { scroll-behavior: smooth; }
       if (button.dataset.ease) {
         ease = EASINGS[button.dataset.ease];
         apply();
+      } else if (button.dataset.nav) {
+        // Same 50% and the same 4px blur — only the tint underneath changes,
+        // so the glass is being compared rather than the transparency.
+        root.style.setProperty("--nav-surface", "rgba(" + button.dataset.nav + ", 0.5)");
       } else if (button.dataset.gaps) {
         root.style.setProperty("--section-lead", button.dataset.gaps);
         measure();
