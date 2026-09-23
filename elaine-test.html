@@ -227,7 +227,13 @@
   --signature: #6b6a66;
   --ground: #fcfcfc;
   --accent-green: #34c759;
+  /* The nav's whole treatment, in four parts, so an option is one swap:
+     the ground, what the backdrop is put through, and the two type colours
+     the active state interpolates between. */
   --nav-surface: rgba(245, 243, 242, 0.5);
+  --nav-blur: blur(4px);
+  --nav-item: var(--muted);
+  --nav-item-on: var(--ink);
   --placeholder: #e9e7e5;
   --placeholder-media: #d9d9d9;
 
@@ -435,8 +441,8 @@ body {
   z-index: var(--z-nav);
   padding: var(--nav-pad-y) 16px;
   background: var(--nav-surface);
-  -webkit-backdrop-filter: blur(4px);
-  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: var(--nav-blur);
+  backdrop-filter: var(--nav-blur);
   overflow: hidden;
 }
 
@@ -467,7 +473,7 @@ a.nav__item { text-decoration: none; }
 .nav__item {
   --w: 0;
   font-variation-settings: "wght" calc(300 + (var(--w) * 200));
-  color: color-mix(in srgb, var(--muted), var(--ink) calc(var(--w) * 100%));
+  color: color-mix(in srgb, var(--nav-item), var(--nav-item-on) calc(var(--w) * 100%));
 }
 
 .nav__item--work { --w: var(--w-work); }
@@ -811,6 +817,11 @@ a.nav__item { text-decoration: none; }
 
 /* A tag breaks between tags, never inside one. */
 .card__tags span { white-space: nowrap; }
+
+/* A project whose cover is not ready yet. Out of the flow entirely, so the
+   section is three cards tall and the changeovers measure themselves against
+   the real last card. Drop the class to bring it back. */
+.card--parked { display: none; }
 
 /* Three lines are reserved whether the copy fills them or not, so a two-line
    and a three-line project come out the same height. No maximum: at narrow
@@ -1675,7 +1686,9 @@ html { scroll-behavior: smooth; }
         </div>
       </article>
 
-      <article class="card">
+      <!-- Parked until its cover is ready. Left in place rather than deleted,
+           so it comes back by dropping one class. -->
+      <article class="card card--parked">
         <div class="card__media" role="img" aria-label="Consumer App preview"></div>
         <div class="card__meta">
           <div class="card__client">
@@ -1799,7 +1812,7 @@ html { scroll-behavior: smooth; }
     <p class="bench__row"><span>runway</span><button type="button" data-runway="1">1</button><button type="button" data-runway="1.5" class="is-on">1.5</button><button type="button" data-runway="2">2</button><button type="button" data-runway="2.5">2.5</button><button type="button" data-runway="3">3</button></p>
     <p class="bench__row"><span>rail</span><button type="button" data-rail="travel">travel</button><button type="button" data-rail="fade" class="is-on">fade</button></p>
     <p class="bench__row"><span>gaps</span><button type="button" data-gaps="0">off</button><button type="button" data-gaps="1" class="is-on">on</button></p>
-    <p class="bench__row"><span>nav bg</span><button type="button" data-nav="245, 243, 242" class="is-on">F5F3F2</button><button type="button" data-nav="249, 248, 247">F9F8F7</button></p>
+    <p class="bench__row"><span>nav</span><button type="button" data-navopt="0" class="is-on">now</button><button type="button" data-navopt="1">mid</button><button type="button" data-navopt="2">dense</button><button type="button" data-navopt="3">dark</button></p>
   </aside>
 
   <nav class="nav" aria-label="Primary">
@@ -1997,6 +2010,49 @@ html { scroll-behavior: smooth; }
   // motion they pack into the middle. The midpoint slope is what reads as
   // hurried: cubic runs 3x the average speed there, sine about 1.57x. Which
   // one is in force is switchable while we decide.
+  // Four treatments for the nav, all of them still see-through. Measured over
+  // the worst backdrop the pill actually crosses — the near-black wall in the
+  // Ohmyhome cover, luminance 25 of 255 — and over the plain ground.
+  //
+  //   now    what is there. Fails on dark: the pill lands on #818080.
+  //   mid    a 70% ground with the backdrop brightened first, and type dark
+  //          enough to carry it. The most backdrop still visible of the three
+  //          that hold up.
+  //   dense  an 86% ground. The backdrop still moves behind it, muted; the
+  //          type can stay closer to the greys the design asks for.
+  //   dark   the pill goes dark instead of light, type goes pale. The only
+  //          one that is comfortable at both ends, because a dark ground is
+  //          already close to the dark backdrop and merely dims the light one.
+  //
+  // Brightening the backdrop barely helps at 50%: half the pill is tint
+  // whatever happens underneath, so alpha is the lever, not the filter.
+  var NAV_OPTIONS = [
+    {
+      "--nav-surface": "rgba(245, 243, 242, 0.5)",
+      "--nav-blur": "blur(4px)",
+      "--nav-item": "#aeaeae",
+      "--nav-item-on": "#666666"
+    },
+    {
+      "--nav-surface": "rgba(249, 248, 247, 0.7)",
+      "--nav-blur": "blur(14px) brightness(1.5) saturate(1.2)",
+      "--nav-item": "#6e6e6e",
+      "--nav-item-on": "#111111"
+    },
+    {
+      "--nav-surface": "rgba(249, 248, 247, 0.86)",
+      "--nav-blur": "blur(14px) saturate(1.2)",
+      "--nav-item": "#767676",
+      "--nav-item-on": "#1a1a1a"
+    },
+    {
+      "--nav-surface": "rgba(20, 20, 20, 0.68)",
+      "--nav-blur": "blur(14px) saturate(1.1)",
+      "--nav-item": "#dcdcdc",
+      "--nav-item-on": "#ffffff"
+    }
+  ];
+
   var EASINGS = {
     cubic: function (t) {
       return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
@@ -2182,10 +2238,9 @@ html { scroll-behavior: smooth; }
       if (button.dataset.ease) {
         ease = EASINGS[button.dataset.ease];
         apply();
-      } else if (button.dataset.nav) {
-        // Same 50% and the same 4px blur — only the tint underneath changes,
-        // so the glass is being compared rather than the transparency.
-        root.style.setProperty("--nav-surface", "rgba(" + button.dataset.nav + ", 0.5)");
+      } else if (button.dataset.navopt) {
+        var opt = NAV_OPTIONS[+button.dataset.navopt];
+        for (var k in opt) root.style.setProperty(k, opt[k]);
       } else if (button.dataset.gaps) {
         root.style.setProperty("--section-lead", button.dataset.gaps);
         measure();
