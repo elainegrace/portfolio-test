@@ -983,18 +983,17 @@ a.nav__item { text-decoration: none; }
 /* Three columns wide, and the gutter rides on every tile including the last
    so one whole set is exactly the distance the track travels per cycle.
 
-   The tile takes the artwork's shape, as the project covers do, and the
-   frames' height rather than their width is what holds. The grey boxes were
-   portrait at 336 x 388.33; the Homer board is landscape at 4:3, so one of
-   those two numbers has to give. Keeping the height keeps the band the
-   weight the section was drawn around, and the tile widens to 521. Keeping
-   the width instead would have halved the band to 250 and left each app
-   screen inside the board about 55px wide; at 388 they are 93. The tile is
-   full bleed and never sat on the grid, so the three-column width was the
-   looser of the two ties. */
+   The tile takes the artwork's shape, as the project covers do. The grey
+   boxes were portrait at 336 x 388.33; the Homer board is landscape at 4:3,
+   so neither of those numbers survives as drawn.
+
+   It is stated as a height because that is what the flex row lays out
+   against, with the width following from the ratio: 194.17 tall gives 260.5
+   wide, half the 521 the full-height version came out at. The tile is full
+   bleed and never sat on the grid, so nothing else depends on its width. */
 .extras__tile {
   flex: 0 0 auto;
-  height: 388.33px;
+  height: 194.17px;
   aspect-ratio: 6567 / 4893;
   margin-right: var(--gutter);
   background: var(--placeholder-media);
