@@ -280,6 +280,12 @@
      its content, which this must not disturb. */
   --section-lead: 1;
 
+  /* How tall the carousel's tiles stand. The width follows from the
+     artwork's ratio, so this one number is the whole size. 388.33 is the
+     height the frames drew for the portrait grey boxes and what the board
+     came out at when it first went in; a third of that is where it sits. */
+  --extras-tile-h: 129.44px;
+
   /* Carousel travel, in pixels per second. Constant at any tile count or
      viewport width — the loop gets longer, not faster. */
   --extras-speed: 45;
@@ -988,12 +994,12 @@ a.nav__item { text-decoration: none; }
    so neither of those numbers survives as drawn.
 
    It is stated as a height because that is what the flex row lays out
-   against, with the width following from the ratio: 194.17 tall gives 260.5
-   wide, half the 521 the full-height version came out at. The tile is full
-   bleed and never sat on the grid, so nothing else depends on its width. */
+   against, and the width follows from the ratio — so one number is the whole
+   size. The tile is full bleed and never sat on the grid, so nothing else
+   depends on its width. */
 .extras__tile {
   flex: 0 0 auto;
-  height: 194.17px;
+  height: var(--extras-tile-h);
   aspect-ratio: 6567 / 4893;
   margin-right: var(--gutter);
   background: var(--placeholder-media);
@@ -1414,10 +1420,9 @@ a[href]:focus-visible {
      here against 16 on desktop, which happens to match this breakpoint's
      gutter but is stated rather than inherited, so a change to the guide
      cannot move the carousel without being asked. */
-  .extras__tile {
-    height: 207px;
-    margin-right: 8px;
-  }
+  :root { --extras-tile-h: 207px; }
+
+  .extras__tile { margin-right: 8px; }
 
   /* Provisional: enough to clear the nav's 102, pending your pass. */
   .extras { padding-bottom: calc(148px + (var(--vh) * var(--section-lead))); }
@@ -1837,6 +1842,7 @@ html { scroll-behavior: smooth; }
     <p class="bench__row"><span>runway</span><button type="button" data-runway="1">1</button><button type="button" data-runway="1.5" class="is-on">1.5</button><button type="button" data-runway="2">2</button><button type="button" data-runway="2.5">2.5</button><button type="button" data-runway="3">3</button></p>
     <p class="bench__row"><span>rail</span><button type="button" data-rail="travel">travel</button><button type="button" data-rail="fade" class="is-on">fade</button></p>
     <p class="bench__row"><span>gaps</span><button type="button" data-gaps="0">off</button><button type="button" data-gaps="1" class="is-on">on</button></p>
+    <p class="bench__row"><span>tile</span><button type="button" data-tile="388.33">1</button><button type="button" data-tile="194.17">&frac12;</button><button type="button" data-tile="129.44" class="is-on">&#8531;</button><button type="button" data-tile="97.08">&frac14;</button></p>
     <p class="bench__row"><span>nav</span><button type="button" data-navopt="0">now</button><button type="button" data-navopt="1">mid</button><button type="button" data-navopt="2">dense</button><button type="button" data-navopt="3" class="is-on">dark</button></p>
   </aside>
 
@@ -2263,6 +2269,9 @@ html { scroll-behavior: smooth; }
       if (button.dataset.ease) {
         ease = EASINGS[button.dataset.ease];
         apply();
+      } else if (button.dataset.tile) {
+        root.style.setProperty("--extras-tile-h", button.dataset.tile + "px");
+        window.dispatchEvent(new Event("resize"));
       } else if (button.dataset.navopt) {
         var opt = NAV_OPTIONS[+button.dataset.navopt];
         for (var k in opt) root.style.setProperty(k, opt[k]);
