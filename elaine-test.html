@@ -227,13 +227,22 @@
   --signature: #6b6a66;
   --ground: #fcfcfc;
   --accent-green: #34c759;
-  /* The nav's whole treatment, in four parts, so an option is one swap:
-     the ground, what the backdrop is put through, and the two type colours
-     the active state interpolates between. */
-  --nav-surface: rgba(245, 243, 242, 0.5);
-  --nav-blur: blur(4px);
-  --nav-item: var(--muted);
-  --nav-item-on: var(--ink);
+  /* The nav's whole treatment, in four parts: the ground, what the backdrop
+     is put through, and the two type colours the active state interpolates
+     between.
+
+     A dark pill on a light page, which is the only shape that stays legible
+     at both ends while still letting the backdrop through. Measured against
+     the worst backdrop it crosses — the near-black wall in the Ohmyhome
+     cover, luminance 25 of 255 — the inactive item holds 13.7:1 there and
+     4.7:1 over the plain ground; the light pill it replaces managed 1.8 and
+     2.1. A dark ground works at both ends because it is already close to a
+     dark backdrop and merely dims a light one, where a light ground has to
+     fight everything underneath it. */
+  --nav-surface: rgba(20, 20, 20, 0.68);
+  --nav-blur: blur(14px) saturate(1.1);
+  --nav-item: #dcdcdc;
+  --nav-item-on: #ffffff;
   --placeholder: #e9e7e5;
   --placeholder-media: #d9d9d9;
 
@@ -972,13 +981,31 @@ a.nav__item { text-decoration: none; }
 }
 
 /* Three columns wide, and the gutter rides on every tile including the last
-   so one whole set is exactly the distance the track travels per cycle. */
+   so one whole set is exactly the distance the track travels per cycle.
+
+   The tile takes the artwork's shape, as the project covers do, and the
+   frames' height rather than their width is what holds. The grey boxes were
+   portrait at 336 x 388.33; the Homer board is landscape at 4:3, so one of
+   those two numbers has to give. Keeping the height keeps the band the
+   weight the section was drawn around, and the tile widens to 521. Keeping
+   the width instead would have halved the band to 250 and left each app
+   screen inside the board about 55px wide; at 388 they are 93. The tile is
+   full bleed and never sat on the grid, so the three-column width was the
+   looser of the two ties. */
 .extras__tile {
   flex: 0 0 auto;
-  width: calc((var(--column) * 3) + (var(--gutter) * 2));
-  aspect-ratio: 336 / 388.33;
+  height: 388.33px;
+  aspect-ratio: 6567 / 4893;
   margin-right: var(--gutter);
   background: var(--placeholder-media);
+  overflow: hidden;
+}
+
+.extras__tile img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 @keyframes extras-marquee {
@@ -1389,8 +1416,7 @@ a[href]:focus-visible {
      gutter but is stated rather than inherited, so a change to the guide
      cannot move the carousel without being asked. */
   .extras__tile {
-    width: 179px;
-    aspect-ratio: 179 / 207;
+    height: 207px;
     margin-right: 8px;
   }
 
@@ -1760,10 +1786,10 @@ html { scroll-behavior: smooth; }
          viewport needs, so adding tiles here is all that is required. -->
     <div class="extras__carousel">
       <div class="extras__track">
-        <div class="extras__tile"></div>
-        <div class="extras__tile"></div>
-        <div class="extras__tile"></div>
-        <div class="extras__tile"></div>
+        <div class="extras__tile"><img src="assets/Extras%20-%20Homer%20Splash%20Screens.webp" alt="Homer app splash screens: real-time property valuation, calculators, neighbourhood prices, agents and HomerGPT" loading="lazy" decoding="async"></div>
+        <div class="extras__tile" aria-hidden="true"><img src="assets/Extras%20-%20Homer%20Splash%20Screens.webp" alt="" loading="lazy" decoding="async"></div>
+        <div class="extras__tile" aria-hidden="true"><img src="assets/Extras%20-%20Homer%20Splash%20Screens.webp" alt="" loading="lazy" decoding="async"></div>
+        <div class="extras__tile" aria-hidden="true"><img src="assets/Extras%20-%20Homer%20Splash%20Screens.webp" alt="" loading="lazy" decoding="async"></div>
       </div>
     </div>
   </section>
@@ -1812,7 +1838,7 @@ html { scroll-behavior: smooth; }
     <p class="bench__row"><span>runway</span><button type="button" data-runway="1">1</button><button type="button" data-runway="1.5" class="is-on">1.5</button><button type="button" data-runway="2">2</button><button type="button" data-runway="2.5">2.5</button><button type="button" data-runway="3">3</button></p>
     <p class="bench__row"><span>rail</span><button type="button" data-rail="travel">travel</button><button type="button" data-rail="fade" class="is-on">fade</button></p>
     <p class="bench__row"><span>gaps</span><button type="button" data-gaps="0">off</button><button type="button" data-gaps="1" class="is-on">on</button></p>
-    <p class="bench__row"><span>nav</span><button type="button" data-navopt="0" class="is-on">now</button><button type="button" data-navopt="1">mid</button><button type="button" data-navopt="2">dense</button><button type="button" data-navopt="3">dark</button></p>
+    <p class="bench__row"><span>nav</span><button type="button" data-navopt="0">now</button><button type="button" data-navopt="1">mid</button><button type="button" data-navopt="2">dense</button><button type="button" data-navopt="3" class="is-on">dark</button></p>
   </aside>
 
   <nav class="nav" aria-label="Primary">
