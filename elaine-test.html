@@ -989,27 +989,31 @@ a.nav__item { text-decoration: none; }
 /* Three columns wide, and the gutter rides on every tile including the last
    so one whole set is exactly the distance the track travels per cycle.
 
-   The tile takes the artwork's shape, as the project covers do. The grey
-   boxes were portrait at 336 x 388.33; the Homer board is landscape at 4:3,
-   so neither of those numbers survives as drawn.
+   Only the height is stated. The band holds one height across the whole
+   carousel and each tile takes its own artwork's width from it, because the
+   set is not one shape: the Homer board is 4:3 and the six others are 10:9.
+   Forcing them to a single ratio would have cropped about a sixth off the
+   height of every one of the six, through the middle of compositions that
+   are centred in their frame.
 
-   It is stated as a height because that is what the flex row lays out
-   against, and the width follows from the ratio — so one number is the whole
-   size. The tile is full bleed and never sat on the grid, so nothing else
-   depends on its width. */
+   Varying widths cost the marquee nothing — it sums the tiles it actually
+   has rather than assuming they match — and a row of mixed widths on one
+   baseline is what a shelf of work looks like anyway. */
 .extras__tile {
   flex: 0 0 auto;
   height: var(--extras-tile-h);
-  aspect-ratio: 6567 / 4893;
+  width: auto;
   margin-right: var(--gutter);
   background: var(--placeholder-media);
   overflow: hidden;
 }
 
+/* Every image carries width and height attributes, so the browser knows each
+   tile's shape before a byte of it arrives and the track is laid out — and
+   measured — correctly on the first pass rather than after the loads. */
 .extras__tile img {
-  width: 100%;
   height: 100%;
-  object-fit: cover;
+  width: auto;
   display: block;
 }
 
@@ -1790,10 +1794,13 @@ html { scroll-behavior: smooth; }
          viewport needs, so adding tiles here is all that is required. -->
     <div class="extras__carousel">
       <div class="extras__track">
-        <div class="extras__tile"><img src="assets/Extras%20-%20Homer%20Splash%20Screens.webp" alt="Homer app splash screens: real-time property valuation, calculators, neighbourhood prices, agents and HomerGPT" loading="lazy" decoding="async"></div>
-        <div class="extras__tile" aria-hidden="true"><img src="assets/Extras%20-%20Homer%20Splash%20Screens.webp" alt="" loading="lazy" decoding="async"></div>
-        <div class="extras__tile" aria-hidden="true"><img src="assets/Extras%20-%20Homer%20Splash%20Screens.webp" alt="" loading="lazy" decoding="async"></div>
-        <div class="extras__tile" aria-hidden="true"><img src="assets/Extras%20-%20Homer%20Splash%20Screens.webp" alt="" loading="lazy" decoding="async"></div>
+        <div class="extras__tile"><img src="assets/Extras%20-%20Homer%20Splash%20Screens.webp" width="3284" height="2447" alt="Homer app splash screens: real-time property valuation, calculators, neighbourhood prices, agents and HomerGPT" loading="lazy" decoding="async"></div>
+        <div class="extras__tile"><img src="assets/Extras%20-%20MESH%20Website.webp" width="2000" height="1800" alt="MESH by Ohmyhome website: a laptop showing the sourcing-to-turn-key homepage" loading="lazy" decoding="async"></div>
+        <div class="extras__tile"><img src="assets/Extras%20-%20Homer%20Ads%20Landing%20Page.webp" width="2000" height="1800" alt="Homer ads landing page: a tablet showing the home eValuation page on an orange ground" loading="lazy" decoding="async"></div>
+        <div class="extras__tile"><img src="assets/Extras%20-%20MESH%20Visual%20Language.webp" width="2000" height="1800" alt="MESH visual language: the wordmark, Chronicle Display and Plus Jakarta Sans specimens, interior photography and the colour palette" loading="lazy" decoding="async"></div>
+        <div class="extras__tile"><img src="assets/Extras%20-%20Homer%20Ads%20Landing%20Page-1.webp" width="2000" height="1800" alt="Homer ads landing page sections: neighbours' selling prices, the calculators, Match, and the AI assistant" loading="lazy" decoding="async"></div>
+        <div class="extras__tile"><img src="assets/Extras%20-%20MESH%20Website-1.webp" width="2000" height="1800" alt="MESH website on mobile: the homepage over an office interior, beside the sourcing and renovation copy" loading="lazy" decoding="async"></div>
+        <div class="extras__tile"><img src="assets/Extras%20-%20EDM%20Overfeel.webp" width="2000" height="1800" alt="Overfeel email invitation: a Sunollo private launch for the Porsche Taycan" loading="lazy" decoding="async"></div>
       </div>
     </div>
   </section>
