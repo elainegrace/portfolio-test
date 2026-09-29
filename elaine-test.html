@@ -1886,6 +1886,7 @@ html { scroll-behavior: smooth; }
     <p class="bench__row"><span>runway</span><button type="button" data-runway="1">1</button><button type="button" data-runway="1.5" class="is-on">1.5</button><button type="button" data-runway="2">2</button><button type="button" data-runway="2.5">2.5</button><button type="button" data-runway="3">3</button></p>
     <p class="bench__row"><span>rail</span><button type="button" data-rail="travel">travel</button><button type="button" data-rail="fade" class="is-on">fade</button></p>
     <p class="bench__row"><span>gaps</span><button type="button" data-gaps="0">off</button><button type="button" data-gaps="1" class="is-on">on</button></p>
+    <p class="bench__row"><span>speed</span><button type="button" data-speed="45" class="is-on">45</button><button type="button" data-speed="60">60</button><button type="button" data-speed="80">80</button><button type="button" data-speed="100">100</button><button type="button" data-speed="130">130</button></p>
     <p class="bench__row"><span>tile vh</span><button type="button" data-tile="30">30</button><button type="button" data-tile="35">35</button><button type="button" data-tile="40" class="is-on">40</button><button type="button" data-tile="46">46</button><button type="button" data-tile="52">52</button></p>
     <p class="bench__row"><span>nav fade</span><button type="button" data-navfade="0">off</button><button type="button" data-navfade="0.3">.3</button><button type="button" data-navfade="0.5">.5</button><button type="button" data-navfade="0.7" class="is-on">.7</button></p>
     <p class="bench__row"><span>nav</span><button type="button" data-navopt="0">now</button><button type="button" data-navopt="1">mid</button><button type="button" data-navopt="2">dense</button><button type="button" data-navopt="3" class="is-on">dark</button></p>
@@ -1957,9 +1958,6 @@ html { scroll-behavior: smooth; }
   var originals = Array.prototype.slice.call(track.children);
   if (!originals.length) return;
 
-  var speed = parseFloat(
-    getComputedStyle(document.documentElement).getPropertyValue("--extras-speed")
-  ) || 45;
   var queued = false;
 
   function build() {
@@ -1985,6 +1983,12 @@ html { scroll-behavior: smooth; }
       });
     }
 
+    // Read per build rather than once at start-up, so --extras-speed can be
+    // changed at runtime and the duration follows. The cycle distance is one
+    // whole set either way, so the wrap stays seamless whatever the speed.
+    var speed = parseFloat(
+      getComputedStyle(document.documentElement).getPropertyValue("--extras-speed")
+    ) || 45;
     track.style.setProperty("--extras-shift", setWidth.toFixed(2) + "px");
     track.style.animationDuration = (setWidth / speed).toFixed(2) + "s";
   }
@@ -2325,6 +2329,9 @@ html { scroll-behavior: smooth; }
         apply();
       } else if (button.dataset.navfade) {
         root.style.setProperty("--nav-fade", button.dataset.navfade);
+      } else if (button.dataset.speed) {
+        root.style.setProperty("--extras-speed", button.dataset.speed);
+        window.dispatchEvent(new Event("resize"));
       } else if (button.dataset.tile) {
         root.style.setProperty("--extras-tile-vh", button.dataset.tile);
         window.dispatchEvent(new Event("resize"));
