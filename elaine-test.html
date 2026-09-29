@@ -92,6 +92,18 @@
   --q-lead: clamp(0, calc(var(--q) / 0.45), 1);
   --q-trail: clamp(0, calc((var(--q) - 0.55) / 0.45), 1);
 
+  /* The nav dipping as it crosses. 0 at both ends of its travel and 1 in the
+     middle, so the pill thins where it is furthest from either resting place
+     and comes back solid as it arrives. It still travels the whole way and is
+     never invisible — the reader has to be able to follow where the one piece
+     of navigation has gone — but a fully opaque dark pill sliding 780px was
+     doing more announcing than the move needs.
+
+     --nav-dip is the shape, written per frame; --nav-fade is how deep it
+     goes. 0 is the old behaviour. */
+  --nav-dip: 0;
+  --nav-fade: 0.5;
+
   /* The Extras blurb arriving, 0 -> 1 a beat after the heading it belongs to
      has finished locking. Tracking --r put the two at full strength on the
      same pixel, so they read as one thing appearing; waiting lets the heading
@@ -459,6 +471,10 @@ body {
   -webkit-backdrop-filter: var(--nav-blur);
   backdrop-filter: var(--nav-blur);
   overflow: hidden;
+  /* Tablet states its own opacity — the nav rises from under the edge there
+     rather than crossing the screen — so the dip stays a desktop thing by
+     the same rule that gives tablet its entrance. */
+  opacity: calc(1 - (var(--nav-dip) * var(--nav-fade)));
 }
 
 .nav__list {
@@ -1859,6 +1875,7 @@ html { scroll-behavior: smooth; }
     <p class="bench__row"><span>rail</span><button type="button" data-rail="travel">travel</button><button type="button" data-rail="fade" class="is-on">fade</button></p>
     <p class="bench__row"><span>gaps</span><button type="button" data-gaps="0">off</button><button type="button" data-gaps="1" class="is-on">on</button></p>
     <p class="bench__row"><span>tile</span><button type="button" data-tile="388.33">1</button><button type="button" data-tile="258.89" class="is-on">&#8532;</button><button type="button" data-tile="194.17">&frac12;</button><button type="button" data-tile="129.44">&#8531;</button><button type="button" data-tile="97.08">&frac14;</button></p>
+    <p class="bench__row"><span>nav fade</span><button type="button" data-navfade="0">off</button><button type="button" data-navfade="0.3">.3</button><button type="button" data-navfade="0.5" class="is-on">.5</button><button type="button" data-navfade="0.7">.7</button></p>
     <p class="bench__row"><span>nav</span><button type="button" data-navopt="0">now</button><button type="button" data-navopt="1">mid</button><button type="button" data-navopt="2">dense</button><button type="button" data-navopt="3" class="is-on">dark</button></p>
   </aside>
 
@@ -2252,7 +2269,16 @@ html { scroll-behavior: smooth; }
 
     root.style.setProperty("--q", ease(at(toAboutAt, y)).toFixed(4));
     root.style.setProperty("--r", ease(at(toExtrasAt, y)).toFixed(4));
-    root.style.setProperty("--t", ease(at(toContactAt, y)).toFixed(4));
+    var easedT = ease(at(toContactAt, y));
+    root.style.setProperty("--t", easedT.toFixed(4));
+
+    // The nav's dip follows where the nav actually is, not where the hero is:
+    // it travels on --p down and back up on --t, so the net of the two is its
+    // position, and a half sine over that is 0 at both resting places and 1 at
+    // the furthest point between them. Taken from the eased values, so the dip
+    // tracks the pill rather than the scroll.
+    var navPos = clamp01(eased - easedT);
+    root.style.setProperty("--nav-dip", Math.sin(Math.PI * navPos).toFixed(4));
     root.style.setProperty("--blurb", ease(at(blurbAt, y)).toFixed(4));
     root.style.setProperty("--release", ease(at(releaseAt, y)).toFixed(4));
   }
@@ -2285,6 +2311,8 @@ html { scroll-behavior: smooth; }
       if (button.dataset.ease) {
         ease = EASINGS[button.dataset.ease];
         apply();
+      } else if (button.dataset.navfade) {
+        root.style.setProperty("--nav-fade", button.dataset.navfade);
       } else if (button.dataset.tile) {
         root.style.setProperty("--extras-tile-h", button.dataset.tile + "px");
         window.dispatchEvent(new Event("resize"));
