@@ -1029,7 +1029,14 @@ a.nav__item { text-decoration: none; }
   height: var(--extras-tile-h);
   width: auto;
   margin-right: var(--gutter);
-  background: var(--placeholder-media);
+  /* The page's own ground, not the placeholder grey. The MATCH campaign board
+     carries an alpha channel — 53% of it lets what is behind through by 6% or
+     more, on a soft ramp rather than as cut-out holes — so against #d9d9d9 the
+     whole piece went dull rather than showing obvious gaps. It is the only one
+     of the sixteen with transparency; the grey was a leftover from when these
+     were empty boxes, and the ground is the kinder colour for the moment
+     before any tile's image arrives. */
+  background: var(--ground);
   overflow: hidden;
 }
 
