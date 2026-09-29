@@ -1029,13 +1029,11 @@ a.nav__item { text-decoration: none; }
   height: var(--extras-tile-h);
   width: auto;
   margin-right: var(--gutter);
-  /* The page's own ground, not the placeholder grey. The MATCH campaign board
-     carries an alpha channel — 53% of it lets what is behind through by 6% or
-     more, on a soft ramp rather than as cut-out holes — so against #d9d9d9 the
-     whole piece went dull rather than showing obvious gaps. It is the only one
-     of the sixteen with transparency; the grey was a leftover from when these
-     were empty boxes, and the ground is the kinder colour for the moment
-     before any tile's image arrives. */
+  /* The page's own ground rather than the placeholder grey. All sixteen are
+     opaque now, so this only shows in the moment before a tile's image
+     arrives — and a near-white gap reads as not-yet-there where a grey block
+     reads as broken. The grey was a leftover from when these were empty
+     boxes. One word to put it back. */
   background: var(--ground);
   overflow: hidden;
 }
@@ -1839,7 +1837,7 @@ html { scroll-behavior: smooth; }
         <div class="extras__tile"><img src="assets/Extras%20-%20EDM%20Overfeel.webp" width="2000" height="1800" alt="Overfeel email invitation: a Sunollo private launch for the Porsche Taycan" loading="lazy" decoding="async"></div>
         <div class="extras__tile"><img src="assets/Extras%20-%20HomerGPT.webp" width="2000" height="1800" alt="HomerGPT: the launch panel beside the in-product assistant answering property questions" loading="lazy" decoding="async"></div>
         <div class="extras__tile"><img src="assets/Extras%20-%20MESH%20Website-1.webp" width="2000" height="1800" alt="MESH website on mobile: the homepage over an office interior, beside the sourcing and renovation copy" loading="lazy" decoding="async"></div>
-        <div class="extras__tile"><img src="assets/Extras%20-%20MATCH-1.webp" width="2000" height="1800" alt="MATCH campaign material: the buyer database figures, how the matching works, and the selling team" loading="lazy" decoding="async"></div>
+        <div class="extras__tile"><img src="assets/MATCH-1.webp" width="2000" height="1800" alt="MATCH campaign material: the buyer database figures, how the matching works, and the selling team" loading="lazy" decoding="async"></div>
         <div class="extras__tile"><img src="assets/Extras%20-%20Auto%20LP-1.webp" width="2000" height="1800" alt="Ohmyhome Sell with us landing page, with the agent appointment booking flow" loading="lazy" decoding="async"></div>
         <div class="extras__tile"><img src="assets/Extras%20-%20Mortgage%20stories.webp" width="2000" height="1800" alt="Refinance story cards: higher savings, lower interest rates, shorter or longer tenure" loading="lazy" decoding="async"></div>
         <div class="extras__tile"><img src="assets/Extras%20-%20Singpass%20Admin.webp" width="2000" height="1800" alt="Singpass listing admin: the approval queue, verified owner details, and the approve and reject states" loading="lazy" decoding="async"></div>
